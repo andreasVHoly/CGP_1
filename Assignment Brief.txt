@@ -1,0 +1,13 @@
+Given the attached code framework (CGP1Prep.zip) complete method stubs in C++ for the following:
+
+- Tests for general validity of an input STL file
+
+- Tests for closed orientable 2-manifold validity. However, you will not be required to test for self-intersection at a triangle level. Normally, this would be done by testing all triangles in the mesh to see if the intersect each other (O(n^2)), which would require a spatial acceleration structure for efficiency. This is beyond the scope of this assignment.
+
+- Appropriate unit tests (using cpp unit) to test this new code. Importantly, note that 20% of the grade will be allocated to unit tests.
+
+- General computational efficiency. You should seek to write efficient methods to test validity and 15% of the grade will be allocated to this.
+
+Note: A framework with a GUI (in Qt) and Rendering (in OpenGL) has been provided. Your task is to fill out the methods marked as "To Do" in Doxygen. All code must be your own. A portion of the grade will be allocated to the efficiency of your solution, since inefficient solutions will take a long time to validate large meshes.
+
+Grade: 15% of final mark.

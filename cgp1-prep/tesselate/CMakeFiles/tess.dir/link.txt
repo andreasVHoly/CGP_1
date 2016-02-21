@@ -1,0 +1,2 @@
+/usr/bin/ar cr libtess.a  CMakeFiles/tess.dir/glwidget.cpp.o CMakeFiles/tess.dir/timer.cpp.o CMakeFiles/tess.dir/shape.cpp.o CMakeFiles/tess.dir/vecpnt.cpp.o CMakeFiles/tess.dir/view.cpp.o CMakeFiles/tess.dir/mesh.cpp.o CMakeFiles/tess.dir/window.cpp.o CMakeFiles/tess.dir/shaderProgram.cpp.o CMakeFiles/tess.dir/renderer.cpp.o CMakeFiles/tess.dir/tess_automoc.cpp.o
+/usr/bin/ranlib libtess.a
