@@ -389,9 +389,6 @@ bool Mesh::readSTL(string filename)
                 if(inpos+12 >= insize){ cerr << "Error Mesh::readSTL: malformed stl file" << endl; return false; }
                 vpos = cgp::Point((* ((float *) &inbuffer[inpos])), (* ((float *) &inbuffer[inpos+4])), (* ((float *) &inbuffer[inpos+8])));
                 tri.v[i] = (int) verts.size();
-
-
-
                 verts.push_back(vpos);
                 inpos += 12;
             }
@@ -485,17 +482,10 @@ bool Mesh::basicValidity()
 {
 
 
+    int triSize = tris.size();
+    std::cout << "Checking Euler's characteristic..." << std::endl;
+    /*
     //1. report euler's characteristic,
-    //2. no dangling vertices
-    //3. edge indices within bounds of the vertex list
-
-
-    //using Eulers Charac
-
-    //we get the sizes needed for the calculation
-
-    //added
-
     for (int i = 0; i < tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
         Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
@@ -510,10 +500,74 @@ bool Mesh::basicValidity()
         if (!findEdge(edges, e3)){
             edges.push_back(e3);
         }
-    }
+    }*/
+    std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
+    std::cout << "no clean verts: " << no_vert_clean << std::endl;
+    std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
+    std::cout << "no clean edges: " << no_edges_clean << std::endl;
+    std::cout << "no triangles: " << no_trinagles << std::endl;
+
+
+
+
     no_edges_clean = edges.size();
     no_edges_dirty = no_vert_dirty;
     //added
+    std::cout << "Models conforms to Euler's characteristic..." << std::endl;
+
+
+    //2. no dangling vertices
+
+    std::cout << "Checking for dangling vetices..." << std::endl;
+    std::vector<int> dangling(no_vert_clean,0);
+
+
+    
+
+    for (int k = 0; k < triSize; k++){
+        for (int j = 0; j < 3; j++){
+            dangling[tris[k].v[j]]++;
+        }
+    }
+
+
+    int danglingSize = dangling.size();
+    for (int p = 0; p < danglingSize; p++){
+        if (dangling[p] == 0){
+            std::cout << "Error: Dangling vertex found" << std::endl;
+            return false;
+        }
+    }
+    std::cout << "No dangling vertices found..." << std::endl;
+
+
+
+
+    //3. edge indices within bounds of the vertex list
+    //we need to check if each vertex index stored in the edge table is within the bounds of the vertex data structure
+    //do do this we need to check each vertex index to see if it is >= 0 and < than the size of the DS
+    std::cout << "Checking if edge indices are within vertex list bounds..." << std::endl;
+
+    int edgeSize = edges.size();
+    int vertSize = verts.size();
+
+    for (int x = 0; x < edgeSize; x++){
+        if (edges[x].v[0] >= 0 && edges[x].v[0] < vertSize){
+            continue;
+        }
+        else{
+            std::cout << "Error: Index out of bounds" << std::endl;
+            return false;
+        }
+    }
+    std::cout << "No indices are out of bounds..." << std::endl;
+    //using Eulers Charac
+
+    //we get the sizes needed for the calculation
+
+    //added
+
+    
 
 
 
@@ -524,11 +578,7 @@ bool Mesh::basicValidity()
 
     //long calc1 = no_vert_clean - no_edges_dirty + no_trinagles;
 
-    std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
-    std::cout << "no clean verts: " << no_vert_clean << std::endl;
-    std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
-    std::cout << "no clean edges: " << no_edges_clean << std::endl;
-    std::cout << "no triangles: " << no_trinagles << std::endl;
+    
     //std::cout << "calc1 result: " << calc1 << std::endl;
 /*
     switch(calc1){
