@@ -447,6 +447,10 @@ bool Mesh::writeSTL(string filename)
     return true;
 }
 
+
+
+
+
 bool Mesh::basicValidity()
 {
 
@@ -463,7 +467,7 @@ bool Mesh::basicValidity()
 
 
     //by test no_verts_dirty = no_edges_dirty
-    no_edges_dirty = no_vert_dirty;
+    no_edges_dirty = no_trinagles*3;
 
     int genus = -1;
 

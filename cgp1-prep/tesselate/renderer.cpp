@@ -85,6 +85,7 @@ void Renderer::initShaders(void)
     }
     shadersReady = true;
     std::cout << "done!\n";
+
 }
 
 void Renderer::draw(View * view)

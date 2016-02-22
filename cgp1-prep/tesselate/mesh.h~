@@ -123,10 +123,6 @@ private:
 
 public:
 
-
-	void loadBunny();
-
-
     ShapeGeometry geom;         ///< renderable version of mesh
 
     Mesh();
