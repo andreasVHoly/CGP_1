@@ -73,6 +73,25 @@ bool Mesh::findEdge(vector<Edge> edges, Edge e, int &idx)
     return found;
 }
 
+
+
+bool Mesh::findEdge(vector<Edge> edges, Edge e)
+{
+    bool found = false;
+    int i = 0;
+
+    // linear search of edge list
+    while(!found && i < (int) edges.size())
+    {
+        if( (edges[i].v[0] == e.v[0] && edges[i].v[1] == e.v[1]) || (edges[i].v[1] == e.v[0] && edges[i].v[0] == e.v[1]) )
+        {
+            found = true;
+        }
+        i++;
+    }
+    return found;
+}
+
 long Mesh::hashVert(cgp::Point pnt, cgp::BoundBox bbox)
 {
     long x, y, z;
@@ -228,6 +247,9 @@ void Mesh::clear()
     for(int i = 0; i < (int) boundspheres.size(); i++)
         boundspheres[i].ind.clear();
     boundspheres.clear();
+
+    //added
+    edges.clear();
 }
 
 bool Mesh::genGeometry(View * view, ShapeDrawData &sdd)
@@ -367,9 +389,16 @@ bool Mesh::readSTL(string filename)
                 if(inpos+12 >= insize){ cerr << "Error Mesh::readSTL: malformed stl file" << endl; return false; }
                 vpos = cgp::Point((* ((float *) &inbuffer[inpos])), (* ((float *) &inbuffer[inpos+4])), (* ((float *) &inbuffer[inpos+8])));
                 tri.v[i] = (int) verts.size();
+
+
+
                 verts.push_back(vpos);
                 inpos += 12;
             }
+
+            
+
+
             tris.push_back(tri);
             t++;
             inpos += 2; // handle attribute byte count - which can simply be discarded
@@ -381,9 +410,10 @@ bool Mesh::readSTL(string filename)
 
         cerr << "num vertices = " << (int) verts.size() << endl;
         cerr << "num triangles = " << (int) tris.size() << endl;
-
+        cerr << "num edges = " << (int) edges.size() << endl;
         no_trinagles = tris.size();
         no_vert_dirty = verts.size();
+        no_edges_dirty = edges.size();
 
 
         // STL provides a triangle soup so merge vertices that are coincident
@@ -464,20 +494,43 @@ bool Mesh::basicValidity()
 
     //we get the sizes needed for the calculation
 
+    //added
+
+    for (int i = 0; i < tris.size(); i++){
+        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
+        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+
+        if (!findEdge(edges, e1)){
+            edges.push_back(e1);
+        }
+        if (!findEdge(edges, e2)){
+            edges.push_back(e2);
+        }
+        if (!findEdge(edges, e3)){
+            edges.push_back(e3);
+        }
+    }
+    no_edges_clean = edges.size();
+    no_edges_dirty = no_vert_dirty;
+    //added
+
 
 
     //by test no_verts_dirty = no_edges_dirty
-    no_edges_dirty = no_trinagles*3;
+    //no_edges_dirty = no_trinagles*3;
 
     int genus = -1;
 
-    long calc1 = no_vert_clean - no_edges_dirty + no_trinagles;
+    //long calc1 = no_vert_clean - no_edges_dirty + no_trinagles;
 
     std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
+    std::cout << "no clean verts: " << no_vert_clean << std::endl;
     std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
+    std::cout << "no clean edges: " << no_edges_clean << std::endl;
     std::cout << "no triangles: " << no_trinagles << std::endl;
-    std::cout << "calc1 result: " << calc1 << std::endl;
-
+    //std::cout << "calc1 result: " << calc1 << std::endl;
+/*
     switch(calc1){
     case 2:
         genus = 0;
@@ -513,8 +566,8 @@ bool Mesh::basicValidity()
         //          -2 -> 2 holes
         //          -4 -> 3 holes etc
 
-
-
+*/
+    return false;
 }
 
 bool Mesh::manifoldValidity()

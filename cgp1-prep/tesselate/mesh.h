@@ -31,6 +31,25 @@ struct Triangle
 struct Edge
 {
     int v[2];   ///< indices into the vertex list for edge endpoints
+
+
+    Edge(int e1, int e2){
+        v[0] = e1;
+        v[1] = e2;
+    }
+
+    bool compare(Edge e1){
+        if (e1.v[0] == v[0] && e1.v[1] == v[1]){
+            return true;
+        }
+        else if (e1.v[0] == v[1] && e1.v[1] == v[0]){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
 };
 
 /**
@@ -66,6 +85,8 @@ private:
     long no_edges_clean;
     long no_trinagles;
 
+    std::vector<Edge> edges;
+
     //added in
 
 
@@ -97,6 +118,16 @@ private:
      * @retval false otherwise
      */
     bool findEdge(vector<Edge> edges, Edge e, int &idx);
+
+
+    /**
+     * Search a list of edges to find matching edge
+     * @param edges     edge list
+     * @param e         edge to find
+     * @retval true  if the point is found in the vertex list,
+     * @retval false otherwise
+     */
+    bool findEdge(vector<Edge> edges, Edge e);
 
     /**
      * Construct a hash key based on a 3D point
