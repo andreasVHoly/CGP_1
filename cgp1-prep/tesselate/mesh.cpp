@@ -484,7 +484,7 @@ bool Mesh::basicValidity()
 
     int triSize = tris.size();
     std::cout << "Checking Euler's characteristic..." << std::endl;
-    /*
+    
     //1. report euler's characteristic,
     for (int i = 0; i < tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
@@ -500,7 +500,7 @@ bool Mesh::basicValidity()
         if (!findEdge(edges, e3)){
             edges.push_back(e3);
         }
-    }*/
+    }
     std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
     std::cout << "no clean verts: " << no_vert_clean << std::endl;
     std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
