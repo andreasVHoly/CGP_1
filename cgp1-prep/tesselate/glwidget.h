@@ -93,6 +93,12 @@ private:
     bool updateGeometry;                ///< recreate render buffers on change
     bool meshVisible;                   ///< render intersection mesh
 
+
+    //added
+    void autoLoadModels();
+    //added
+
+
     // render variables
     Renderer * renderer;                ///< OpenGL renderer
 

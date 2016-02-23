@@ -85,15 +85,23 @@ private:
     long no_edges_clean;
     long no_trinagles;
 
+    cgp::BoundBox bbox;
+
     std::vector<Edge> edges;
 
 
-    long hashFuncBasic(Edge edge, cgp::BoundBox bbox);
-    long hashFuncMidpoint(Edge edge, cgp::BoundBox bbox);
+    long hashFuncBasic(Edge edge);
+    long hashFuncMidpoint(Edge edge);
+    long hashFuncAdv(Edge edge);
+    long hashFuncAdd(Edge edge);
 
     void naiveEdgeSort();
-    void hashEdgeSort();
+    void hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash);
+    void hashEdgeSortV2();
     void buildDirtyEdges();
+
+
+    
     //added in
 
 
@@ -142,7 +150,7 @@ private:
      * @param bbox  bounding box enclosing all mesh vertices
      * @retval hash key
      */
-    long hashVert(cgp::Point pnt, cgp::BoundBox bbox);
+    long hashVert(cgp::Point pnt);
 
     /// Connect triangles together by merging duplicate vertices
     void mergeVerts();
@@ -161,8 +169,9 @@ private:
 
 public:
 
-
-	void loadBunny();
+    void loadBunny();
+    void loadDragon();
+	
 
 
     ShapeGeometry geom;         ///< renderable version of mesh

@@ -95,7 +95,7 @@ bool Mesh::findEdge(vector<Edge> edges, Edge e)
 
 
 
-long Mesh::hashVert(cgp::Point pnt, cgp::BoundBox bbox)
+long Mesh::hashVert(cgp::Point pnt)
 {
     long x, y, z;
     float range = 2500.0f;
@@ -117,7 +117,7 @@ void Mesh::mergeVerts()
     int i, p, hitcount = 0;
     // use hashmap to quickly look up vertices with the same coordinates
     std::unordered_map<long, int> idxlookup; // key is concatenation of vertex position, value is index into the cleanverts vector
-    cgp::BoundBox bbox;
+    //cgp::BoundBox bbox;
 
     // construct a bounding box enclosing all vertices
     for(i = 0; i < (int) verts.size(); i++)
@@ -126,7 +126,7 @@ void Mesh::mergeVerts()
     // remove duplicate vertices
     for(i = 0; i < (int) verts.size(); i++)
     {
-        key = hashVert(verts[i], bbox);
+        key = hashVert(verts[i]);
         if(idxlookup.find(key) == idxlookup.end()) // key not in map
         {
             idxlookup[key] = (int) cleanverts.size(); // put index in map for quick lookup
@@ -151,7 +151,7 @@ void Mesh::mergeVerts()
     for(i = 0; i < (int) tris.size(); i++)
         for(p = 0; p < 3; p++)
         {
-            key = hashVert(verts[tris[i].v[p]], bbox);
+            key = hashVert(verts[tris[i].v[p]]);
             if(idxlookup.find(key) != idxlookup.end())
                 tris[i].v[p] = idxlookup[key];
             else
@@ -496,8 +496,16 @@ bool Mesh::basicValidity()
 
 
     if (checkTest){
+        /*buildDirtyEdges();
+        hashEdgeSort(true,false,false,false);
         buildDirtyEdges();
-        hashEdgeSort();
+        hashEdgeSort(false,true,false,false);
+        buildDirtyEdges();
+        hashEdgeSort(false,false,true,false);
+        buildDirtyEdges();
+        hashEdgeSort(false,false,false,true);*/
+        buildDirtyEdges();
+        hashEdgeSortV2();
     }
 
 
@@ -707,7 +715,25 @@ void Mesh::buildDirtyEdges(){
 }
 
 
-void Mesh::hashEdgeSort(){
+
+
+
+void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash){
+
+
+    if (midpointHash){
+        std::cout << ">>>>>> running with midpoint hash function" << std::endl;
+    }
+    else if (basicAddHash){
+        std::cout << ">>>>>> running with basic hash function" << std::endl;
+    }
+    else if (complexAddHash){
+        std::cout << ">>>>>> running with complex add hash function" << std::endl;
+    }
+    else if (advHash){
+        std::cout << ">>>>>> running with advanced hash function" << std::endl;
+    }
+
 
     vector<Edge> cleanEdges;
     long key;
@@ -716,19 +742,26 @@ void Mesh::hashEdgeSort(){
 
     // use hashmap to quickly look up vertices with the same coordinates
     std::unordered_map<long, int[2]> idxlookup; // key is concatenation of vertex position, value is index into the cleanverts vector
-    cgp::BoundBox bbox;
 
-
-    //can be sped up by using old one
-    // construct a bounding box enclosing all vertices
-    for(i = 0; i < (int) verts.size(); i++){
-        bbox.includePnt(verts[i]);
-    }
 
     // remove duplicate edges
     for(i = 0; i < (int) edges.size(); i++)
     {
-        key = hashFuncMidpoint(edges[i], bbox);
+        if (midpointHash){
+            key = hashFuncMidpoint(edges[i]);
+        }
+        else if (basicAddHash){
+            key = hashFuncBasic(edges[i]);
+        }
+        else if (complexAddHash){
+            key = hashFuncAdd(edges[i]);
+        }
+        else if (advHash){
+            key = hashFuncAdv(edges[i]);
+        }
+
+
+        
         if(idxlookup.find(key) == idxlookup.end()) // key not in map
         {
             idxlookup[key][0] = edges[i].v[0]; // put index in map for quick lookup
@@ -747,39 +780,137 @@ void Mesh::hashEdgeSort(){
     no_edges_clean = cleanEdges.size();
     no_edges_dirty = edges.size();
 
-    //cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
-    //cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
-    //cerr << "bbox diag = " << bbox.diagLen() << endl;
-
-    /*
-    // re-index triangles
-    for(i = 0; i < (int) tris.size(); i++)
-        for(p = 0; p < 3; p++)
-        {
-            key = hashVert(verts[tris[i].v[p]], bbox);
-            if(idxlookup.find(key) != idxlookup.end())
-                tris[i].v[p] = idxlookup[key];
-            else
-                cerr << "Error Mesh::mergeVerts: vertex not found in map" << endl;
-
-        }
-    */
     edges.clear();
     edges = cleanEdges;
 }
 
 
+
+
+
+
+void Mesh::hashEdgeSortV2(){
+
+
+    std::cout << ">>>>>> running hash edge sort v2.0" << std::endl;
+
+    vector<Edge> cleanEdges;
+    long key;
+    int i, p, hitcount = 0;
+    
+
+    // use hashmap to quickly look up vertices with the same coordinates
+    std::unordered_map<long, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
+
+    // remove duplicate edges
+    for(i = 0; i < (int) edges.size(); i++)
+    {
+        
+
+        int opposite = 0;
+        if (edges[i].v[0] < edges[i].v[1]){
+            //key = hashVert(verts[edges[i].v[0]]);
+            key = edges[i].v[0];
+            opposite = edges[i].v[1];
+        }
+        else{
+            //key = hashVert(verts[edges[i].v[1]]);
+            key = edges[i].v[1];
+            opposite = edges[i].v[0];
+        }
+        
+        if(idxlookup.find(key) == idxlookup.end()) // key not in map
+        {
+            
+
+            std::vector<int>::iterator start = idxlookup[key].begin();
+            std::vector<int>::iterator end = idxlookup[key].end();
+            bool found = false;
+            while (start != end){
+                if (*start == opposite){
+                    found = true;
+                    break;
+                }
+                start++;
+            }
+
+
+            if (!found){
+                idxlookup[key].push_back(opposite); 
+                cleanEdges.push_back(edges[i]);
+            }
+            
+           
+            
+        }
+        else
+        {
+            hitcount++;
+        }
+    }
+    
+
+    cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
+    cerr << "clean edges = " << (int) cleanEdges.size() << endl;
+    no_edges_clean = cleanEdges.size();
+    no_edges_dirty = edges.size();
+
+    edges.clear();
+    edges = cleanEdges;
+}
+
+
+
+
+
+
 //hash both vertices 
-long Mesh::hashFuncBasic(Edge edge,  cgp::BoundBox bbox){
-    long hash1 = hashVert(verts[edge.v[0]], bbox);
-    long hash2 = hashVert(verts[edge.v[1]], bbox);
+long Mesh::hashFuncBasic(Edge edge){
+    long hash1 = hashVert(verts[edge.v[0]]);
+    long hash2 = hashVert(verts[edge.v[1]]);
     long hash = hash1 + hash2;
     return hash;
 }
 
 
+long Mesh::hashFuncAdv(Edge edge){
+    long x, y, z;
+    float range = 3000.0f;
+    long lrangesq, lrange = 3000;
+
+    lrangesq = lrange * lrange;
+
+
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    // discretise vertex within bounds of the enclosing bounding box
+    x = (long) ((( (p1.x - bbox.min.x) + (p2.x - bbox.min.x) ) * range) / bbox.diagLen()) * lrangesq;
+    y = (long) ((( (p1.y - bbox.min.y) + (p2.y - bbox.min.y) ) * range) / bbox.diagLen()) * lrange;
+    z = (long) ((( (p1.z - bbox.min.z) + (p2.z - bbox.min.z) ) * range) / bbox.diagLen());
+    return x+y+z;
+}
+
+
+
+long Mesh::hashFuncAdd(Edge edge){
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    float newX = p1.x + p2.x;
+    float newY = p1.y + p2.y;
+    float newZ = p1.z + p2.z;
+
+    cgp::Point mid = cgp::Point(newX,newY,newZ);
+
+    long hash = hashVert(mid);
+    
+    return hash;
+}
+
+
 //hash mid point
-long Mesh::hashFuncMidpoint(Edge edge,  cgp::BoundBox bbox){
+long Mesh::hashFuncMidpoint(Edge edge){
     
     cgp::Point p1 = verts[edge.v[0]];
     cgp::Point p2 = verts[edge.v[1]];
@@ -787,13 +918,16 @@ long Mesh::hashFuncMidpoint(Edge edge,  cgp::BoundBox bbox){
     float newX = p1.x + p2.x;
     float newY = p1.y + p2.y;
     float newZ = p1.z + p2.z;
-    newX /= 2;
-    newY /= 2;
-    newZ /= 2;
+    newX = newX/2;
+    newY = newY/2;
+    newZ = newZ/2;
+    //now we have gotten new midpoint
 
     cgp::Point mid = cgp::Point(newX,newY,newZ);
 
-    long hash = hashVert(mid, bbox);
+
+
+    long hash = hashVert(mid);
     
     return hash;
 }
@@ -802,7 +936,14 @@ long Mesh::hashFuncMidpoint(Edge edge,  cgp::BoundBox bbox){
 
 
 
+void Mesh::loadBunny(){
+    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");
+}
 
+
+void Mesh::loadDragon(){
+    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/dragon.stl");
+}
 
 
 

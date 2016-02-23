@@ -102,7 +102,17 @@ void GLWidget::initializeGL()
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_CLAMP);
     glEnable(GL_TEXTURE_2D);
+
+    autoLoadModels();
 }
+
+
+
+void GLWidget::autoLoadModels(){
+    xsect.loadBunny();
+    xsect.loadDragon();
+}
+
 
 void GLWidget::paintGL()
 {
