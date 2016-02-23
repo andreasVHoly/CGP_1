@@ -32,23 +32,14 @@ struct Edge
 {
     int v[2];   ///< indices into the vertex list for edge endpoints
 
+    std::vector<int> trisCommon;
 
-    Edge(int e1, int e2){
-        v[0] = e1;
-        v[1] = e2;
+    Edge(int v1, int v2){
+        v[0] = v1;
+        v[1] = v2;
     }
 
-    bool compare(Edge e1){
-        if (e1.v[0] == v[0] && e1.v[1] == v[1]){
-            return true;
-        }
-        else if (e1.v[0] == v[1] && e1.v[1] == v[0]){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
+  
 
 };
 
@@ -87,6 +78,7 @@ private:
 
     cgp::BoundBox bbox;
 
+    //std::vector<> adjList; 
     std::vector<Edge> edges;
 
 

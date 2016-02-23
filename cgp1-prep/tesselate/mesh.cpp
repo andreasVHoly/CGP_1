@@ -704,9 +704,16 @@ void Mesh::buildDirtyEdges(){
     for (int i = 0; i < tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
         Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
-        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);  
 
-        
+
+        //this is used for the adjacency list later
+        //when we encounter a duplicate edge, we need to merge these vectors to form the adjacency list
+        e1.trisCommon.push_back(i);
+        e2.trisCommon.push_back(i);
+        e3.trisCommon.push_back(i);
+
+
         edges.push_back(e1);
         edges.push_back(e2);   
         edges.push_back(e3);
