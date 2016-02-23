@@ -826,33 +826,38 @@ void Mesh::hashEdgeSortV2(){
             opposite = edges[i].v[0];
         }
         
-        if(idxlookup.find(key) == idxlookup.end()) // key not in map
-        {
-            
-
+        // key not in map
+        if(idxlookup.find(key) == idxlookup.end()) {
+            //if we did not find the key, we add a new index inot the hash map
+            idxlookup[key].push_back(opposite); 
+            cleanEdges.push_back(edges[i]);
+        }
+        else        {
+            //if we do find the entry
+            //we check through the vector to see if the acomplice vertex has been added
             std::vector<int>::iterator start = idxlookup[key].begin();
             std::vector<int>::iterator end = idxlookup[key].end();
             bool found = false;
             while (start != end){
+                //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
                     found = true;
+                    hitcount++;
+
+                    //this is a shared edge
+
+                    //need to somehow get the triangle from here so that we can build the adjacency list
+
                     break;
                 }
                 start++;
             }
 
-
+            //if it is not found, we add a new entry
             if (!found){
                 idxlookup[key].push_back(opposite); 
                 cleanEdges.push_back(edges[i]);
             }
-            
-           
-            
-        }
-        else
-        {
-            hitcount++;
         }
     }
     
