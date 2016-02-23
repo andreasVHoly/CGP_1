@@ -92,6 +92,15 @@ bool Mesh::findEdge(vector<Edge> edges, Edge e)
     return found;
 }
 
+
+//hash both vertices 
+long Mesh::hashFunc(Edge edge,  cgp::BoundBox bbox){
+    long hash1 = hashVert(verts[edge.v[0]], bbox);
+    long hash2 = hashVert(verts[edge.v[1]], bbox);
+    long hash = hash1 + hash2;
+    return hash;
+}
+
 long Mesh::hashVert(cgp::Point pnt, cgp::BoundBox bbox)
 {
     long x, y, z;
@@ -482,85 +491,96 @@ bool Mesh::basicValidity()
 {
 
 
+
+    bool checkEuler = false;
+    bool checkDangVert = false;
+    bool checkEdgeVertBounds = false;
+    bool checkTest = true;
+
+
+    if (checkTest){
+        buildDirtyEdges();
+        hashEdgeSort();
+    }
+
+
+
+
+
+
     int triSize = tris.size();
-    std::cout << "Checking Euler's characteristic..." << std::endl;
+
+    if (checkEuler){
+        std::cout << "Checking Euler's characteristic..." << std::endl;
     
-    //1. report euler's characteristic,
-    for (int i = 0; i < tris.size(); i++){
-        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
-        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
-        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+        //1. report euler's characteristic,
+        naiveEdgeSort();
+        std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
+        std::cout << "no clean verts: " << no_vert_clean << std::endl;
+        std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
+        std::cout << "no clean edges: " << no_edges_clean << std::endl;
+        std::cout << "no triangles: " << no_trinagles << std::endl;
 
-        if (!findEdge(edges, e1)){
-            edges.push_back(e1);
-        }
-        if (!findEdge(edges, e2)){
-            edges.push_back(e2);
-        }
-        if (!findEdge(edges, e3)){
-            edges.push_back(e3);
-        }
+
+
+
+        no_edges_clean = edges.size();
+        no_edges_dirty = no_vert_dirty;
+        //added
+        std::cout << "Models conforms to Euler's characteristic..." << std::endl;
     }
-    std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
-    std::cout << "no clean verts: " << no_vert_clean << std::endl;
-    std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
-    std::cout << "no clean edges: " << no_edges_clean << std::endl;
-    std::cout << "no triangles: " << no_trinagles << std::endl;
+    
+    if (checkDangVert){
+        //2. no dangling vertices
+
+        std::cout << "Checking for dangling vetices..." << std::endl;
+        std::vector<int> dangling(no_vert_clean,0);
 
 
+        
+
+        for (int k = 0; k < triSize; k++){
+            for (int j = 0; j < 3; j++){
+                dangling[tris[k].v[j]]++;
+            }
+        }
 
 
-    no_edges_clean = edges.size();
-    no_edges_dirty = no_vert_dirty;
-    //added
-    std::cout << "Models conforms to Euler's characteristic..." << std::endl;
-
-
-    //2. no dangling vertices
-
-    std::cout << "Checking for dangling vetices..." << std::endl;
-    std::vector<int> dangling(no_vert_clean,0);
-
+        int danglingSize = dangling.size();
+        for (int p = 0; p < danglingSize; p++){
+            if (dangling[p] == 0){
+                std::cout << "Error: Dangling vertex found" << std::endl;
+                return false;
+            }
+        }
+        std::cout << "No dangling vertices found..." << std::endl;
+    }
 
     
 
-    for (int k = 0; k < triSize; k++){
-        for (int j = 0; j < 3; j++){
-            dangling[tris[k].v[j]]++;
+
+    if (checkEdgeVertBounds){
+        //3. edge indices within bounds of the vertex list
+        //we need to check if each vertex index stored in the edge table is within the bounds of the vertex data structure
+        //do do this we need to check each vertex index to see if it is >= 0 and < than the size of the DS
+        std::cout << "Checking if edge indices are within vertex list bounds..." << std::endl;
+
+        int edgeSize = edges.size();
+        int vertSize = verts.size();
+
+        for (int x = 0; x < edgeSize; x++){
+            if (edges[x].v[0] >= 0 && edges[x].v[0] < vertSize){
+                continue;
+            }
+            else{
+                std::cout << "Error: Index out of bounds" << std::endl;
+                return false;
+            }
         }
+        std::cout << "No indices are out of bounds..." << std::endl;
     }
 
-
-    int danglingSize = dangling.size();
-    for (int p = 0; p < danglingSize; p++){
-        if (dangling[p] == 0){
-            std::cout << "Error: Dangling vertex found" << std::endl;
-            return false;
-        }
-    }
-    std::cout << "No dangling vertices found..." << std::endl;
-
-
-
-
-    //3. edge indices within bounds of the vertex list
-    //we need to check if each vertex index stored in the edge table is within the bounds of the vertex data structure
-    //do do this we need to check each vertex index to see if it is >= 0 and < than the size of the DS
-    std::cout << "Checking if edge indices are within vertex list bounds..." << std::endl;
-
-    int edgeSize = edges.size();
-    int vertSize = verts.size();
-
-    for (int x = 0; x < edgeSize; x++){
-        if (edges[x].v[0] >= 0 && edges[x].v[0] < vertSize){
-            continue;
-        }
-        else{
-            std::cout << "Error: Index out of bounds" << std::endl;
-            return false;
-        }
-    }
-    std::cout << "No indices are out of bounds..." << std::endl;
+    
     //using Eulers Charac
 
     //we get the sizes needed for the calculation
@@ -574,7 +594,7 @@ bool Mesh::basicValidity()
     //by test no_verts_dirty = no_edges_dirty
     //no_edges_dirty = no_trinagles*3;
 
-    int genus = -1;
+    //int genus = -1;
 
     //long calc1 = no_vert_clean - no_edges_dirty + no_trinagles;
 
@@ -655,10 +675,101 @@ bool Mesh::manifoldValidity()
 }
 
 
+//added
+void Mesh::naiveEdgeSort(){
+    for (int i = 0; i < tris.size(); i++){
+        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
+        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+
+        if (!findEdge(edges, e1)){
+            edges.push_back(e1);
+        }
+        if (!findEdge(edges, e2)){
+            edges.push_back(e2);
+        }
+        if (!findEdge(edges, e3)){
+            edges.push_back(e3);
+        }
+    }
+}
 
 
+void Mesh::buildDirtyEdges(){
+    for (int i = 0; i < tris.size(); i++){
+        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
+        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+
+        
+        edges.push_back(e1);
+        edges.push_back(e2);   
+        edges.push_back(e3);
+        
+    }
+}
 
 
+void Mesh::hashEdgeSort(){
+
+    vector<Edge> cleanEdges;
+    long key;
+    int i, p, hitcount = 0;
+    
+
+    // use hashmap to quickly look up vertices with the same coordinates
+    std::unordered_map<long, int[2]> idxlookup; // key is concatenation of vertex position, value is index into the cleanverts vector
+    cgp::BoundBox bbox;
+
+
+    //can be sped up by using old one
+    // construct a bounding box enclosing all vertices
+    for(i = 0; i < (int) verts.size(); i++){
+        bbox.includePnt(verts[i]);
+    }
+
+    // remove duplicate edges
+    for(i = 0; i < (int) edges.size(); i++)
+    {
+        key = hashFunc(edges[i], bbox);
+        if(idxlookup.find(key) == idxlookup.end()) // key not in map
+        {
+            idxlookup[key][0] = edges[i].v[0]; // put index in map for quick lookup
+            idxlookup[key][1] = edges[i].v[1]; // put index in map for quick lookup
+            cleanEdges.push_back(edges[i]);
+        }
+        else
+        {
+            hitcount++;
+        }
+    }
+    
+
+    cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
+    cerr << "clean edges = " << (int) cleanEdges.size() << endl;
+    no_edges_clean = cleanEdges.size();
+    no_edges_dirty = edges.size();
+
+    cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
+    cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
+    cerr << "bbox diag = " << bbox.diagLen() << endl;
+
+    /*
+    // re-index triangles
+    for(i = 0; i < (int) tris.size(); i++)
+        for(p = 0; p < 3; p++)
+        {
+            key = hashVert(verts[tris[i].v[p]], bbox);
+            if(idxlookup.find(key) != idxlookup.end())
+                tris[i].v[p] = idxlookup[key];
+            else
+                cerr << "Error Mesh::mergeVerts: vertex not found in map" << endl;
+
+        }
+    */
+    edges.clear();
+    edges = cleanEdges;
+}
 
 
 

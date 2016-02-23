@@ -87,6 +87,12 @@ private:
 
     std::vector<Edge> edges;
 
+
+    long hashFunc(Edge edge, cgp::BoundBox bbox);
+
+    void naiveEdgeSort();
+    void hashEdgeSort();
+    void buildDirtyEdges();
     //added in
 
 
