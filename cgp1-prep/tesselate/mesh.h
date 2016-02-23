@@ -88,7 +88,8 @@ private:
     std::vector<Edge> edges;
 
 
-    long hashFunc(Edge edge, cgp::BoundBox bbox);
+    long hashFuncBasic(Edge edge, cgp::BoundBox bbox);
+    long hashFuncMidpoint(Edge edge, cgp::BoundBox bbox);
 
     void naiveEdgeSort();
     void hashEdgeSort();

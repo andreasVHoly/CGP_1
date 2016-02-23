@@ -93,13 +93,7 @@ bool Mesh::findEdge(vector<Edge> edges, Edge e)
 }
 
 
-//hash both vertices 
-long Mesh::hashFunc(Edge edge,  cgp::BoundBox bbox){
-    long hash1 = hashVert(verts[edge.v[0]], bbox);
-    long hash2 = hashVert(verts[edge.v[1]], bbox);
-    long hash = hash1 + hash2;
-    return hash;
-}
+
 
 long Mesh::hashVert(cgp::Point pnt, cgp::BoundBox bbox)
 {
@@ -148,9 +142,9 @@ void Mesh::mergeVerts()
     no_vert_clean = cleanverts.size();
     no_vert_dirty = verts.size();
 
-    cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
-    cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
-    cerr << "bbox diag = " << bbox.diagLen() << endl;
+    //cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
+    //cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
+    //cerr << "bbox diag = " << bbox.diagLen() << endl;
 
 
     // re-index triangles
@@ -343,6 +337,9 @@ void Mesh::boxFit(float sidelen)
 
 bool Mesh::readSTL(string filename)
 {
+
+
+    cout << "************************************" << filename << "************************************" << std::endl;
     ifstream infile;
     char * inbuffer;
     struct stat results;
@@ -416,7 +413,7 @@ bool Mesh::readSTL(string filename)
 
         cerr << "num vertices = " << (int) verts.size() << endl;
         cerr << "num triangles = " << (int) tris.size() << endl;
-        cerr << "num edges = " << (int) edges.size() << endl;
+        
         no_trinagles = tris.size();
         no_vert_dirty = verts.size();
         no_edges_dirty = edges.size();
@@ -731,7 +728,7 @@ void Mesh::hashEdgeSort(){
     // remove duplicate edges
     for(i = 0; i < (int) edges.size(); i++)
     {
-        key = hashFunc(edges[i], bbox);
+        key = hashFuncMidpoint(edges[i], bbox);
         if(idxlookup.find(key) == idxlookup.end()) // key not in map
         {
             idxlookup[key][0] = edges[i].v[0]; // put index in map for quick lookup
@@ -750,9 +747,9 @@ void Mesh::hashEdgeSort(){
     no_edges_clean = cleanEdges.size();
     no_edges_dirty = edges.size();
 
-    cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
-    cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
-    cerr << "bbox diag = " << bbox.diagLen() << endl;
+    //cerr << "bbox min = " << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << endl;
+    //cerr << "bbox max = " << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << endl;
+    //cerr << "bbox diag = " << bbox.diagLen() << endl;
 
     /*
     // re-index triangles
@@ -772,8 +769,34 @@ void Mesh::hashEdgeSort(){
 }
 
 
+//hash both vertices 
+long Mesh::hashFuncBasic(Edge edge,  cgp::BoundBox bbox){
+    long hash1 = hashVert(verts[edge.v[0]], bbox);
+    long hash2 = hashVert(verts[edge.v[1]], bbox);
+    long hash = hash1 + hash2;
+    return hash;
+}
 
 
+//hash mid point
+long Mesh::hashFuncMidpoint(Edge edge,  cgp::BoundBox bbox){
+    
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    float newX = p1.x + p2.x;
+    float newY = p1.y + p2.y;
+    float newZ = p1.z + p2.z;
+    newX /= 2;
+    newY /= 2;
+    newZ /= 2;
+
+    cgp::Point mid = cgp::Point(newX,newY,newZ);
+
+    long hash = hashVert(mid, bbox);
+    
+    return hash;
+}
 
 
 
