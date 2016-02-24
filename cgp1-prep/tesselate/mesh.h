@@ -89,6 +89,7 @@ private:
 
     void naiveEdgeSort();
     void hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash);
+    void hashEdgeSortV3(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash);
     void hashEdgeSortV2();
     void buildDirtyEdges();
 

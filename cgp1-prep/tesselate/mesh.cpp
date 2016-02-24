@@ -492,18 +492,10 @@ bool Mesh::basicValidity()
     bool checkEuler = false;
     bool checkDangVert = false;
     bool checkEdgeVertBounds = false;
-    bool checkTest = true;
+    bool findCleanEdges = true;
 
 
-    if (checkTest){
-        /*buildDirtyEdges();
-        hashEdgeSort(true,false,false,false);
-        buildDirtyEdges();
-        hashEdgeSort(false,true,false,false);
-        buildDirtyEdges();
-        hashEdgeSort(false,false,true,false);
-        buildDirtyEdges();
-        hashEdgeSort(false,false,false,true);*/
+    if (findCleanEdges){
         buildDirtyEdges();
         hashEdgeSortV2();
     }
@@ -637,7 +629,7 @@ bool Mesh::basicValidity()
     //using the above we can check whether a model has holes or not
 
         //if V - E + F = 2 then we have no holes
-        //therefore 0 -> 1 hole
+        //therefore  0 -> 1 hole
         //          -2 -> 2 holes
         //          -4 -> 3 holes etc
 
@@ -701,7 +693,9 @@ void Mesh::naiveEdgeSort(){
 
 
 void Mesh::buildDirtyEdges(){
-    for (int i = 0; i < tris.size(); i++){
+
+    edges.clear();
+    for (int i = 0; i < (int) tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
         Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
         Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);  
@@ -709,9 +703,9 @@ void Mesh::buildDirtyEdges(){
 
         //this is used for the adjacency list later
         //when we encounter a duplicate edge, we need to merge these vectors to form the adjacency list
-        e1.trisCommon.push_back(i);
+        /*e1.trisCommon.push_back(i);
         e2.trisCommon.push_back(i);
-        e3.trisCommon.push_back(i);
+        e3.trisCommon.push_back(i);*/
 
 
         edges.push_back(e1);
@@ -777,7 +771,39 @@ void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHas
         }
         else
         {
-            hitcount++;
+
+            bool found = false;
+
+            cgp::Point p1 = verts[edges[i].v[0]];
+            cgp::Point p2 = verts[edges[i].v[1]];
+
+            cgp::Point p3 = verts[idxlookup[key][0]];
+            cgp::Point p4 = verts[idxlookup[key][1]];
+
+            if (p1.x == p3.x && p1.y == p3.y && p1.z == p3.z){
+                if (p2.x == p4.x && p2.y == p4.y && p2.z == p4.z){
+                    //means it actually matched
+                    found = true;
+                }
+            }
+            else if (p1.x == p4.x && p1.y == p4.y && p1.z == p4.z){
+                if (p2.x == p3.x && p2.y == p3.y && p2.z == p3.z){
+                    //this means it actually matched
+                    found = true;
+                }
+            }
+
+            if (!found){
+                idxlookup[key][0] = edges[i].v[0]; // put index in map for quick lookup
+                idxlookup[key][1] = edges[i].v[1]; // put index in map for quick lookup
+                cleanEdges.push_back(edges[i]);
+            }
+            else{
+                hitcount++;
+            }
+
+
+            
         }
     }
     
@@ -802,34 +828,44 @@ void Mesh::hashEdgeSortV2(){
     std::cout << ">>>>>> running hash edge sort v2.0" << std::endl;
 
     vector<Edge> cleanEdges;
-    long key;
-    int i, p, hitcount = 0;
+    int key;
+    int i, hitcount = 0, counter = 0;
     
 
     // use hashmap to quickly look up vertices with the same coordinates
-    std::unordered_map<long, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
+    std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
 
     // remove duplicate edges
-    for(i = 0; i < (int) edges.size(); i++)
-    {
+    for(i = 0; i < (int) edges.size(); i++){
         
 
-        int opposite = 0;
+        key = 10000000;
+        int opposite = 1000000;
         if (edges[i].v[0] < edges[i].v[1]){
             //key = hashVert(verts[edges[i].v[0]]);
             key = edges[i].v[0];
             opposite = edges[i].v[1];
+            /*if (edges[i].v[0] == edges[i].v[1]){
+                counter++;
+            }*/
         }
-        else{
+        else if (edges[i].v[0] >= edges[i].v[1]){
+        //else{
             //key = hashVert(verts[edges[i].v[1]]);
             key = edges[i].v[1];
             opposite = edges[i].v[0];
         }
+        else{
+            counter++;
+        }
+        
         
         // key not in map
         if(idxlookup.find(key) == idxlookup.end()) {
             //if we did not find the key, we add a new index inot the hash map
-            idxlookup[key].push_back(opposite); 
+            std::vector<int> temp;
+            temp.push_back(opposite);
+            idxlookup[key] = temp; 
             cleanEdges.push_back(edges[i]);
         }
         else        {
@@ -861,7 +897,7 @@ void Mesh::hashEdgeSortV2(){
         }
     }
     
-
+    cerr << "condition called " << counter << std::endl;
     cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
     cerr << "clean edges = " << (int) cleanEdges.size() << endl;
     no_edges_clean = cleanEdges.size();

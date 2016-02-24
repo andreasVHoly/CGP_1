@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
         if (((float)widgetArea / (float)desktopArea) < 0.75f)
             window->show();
         else
-            window->showMaximized();
+            window->show();
+            //window->showMaximized();
         int status = app.exec();
 
         return status;
