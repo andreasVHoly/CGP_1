@@ -639,6 +639,7 @@ bool Mesh::basicValidity()
         //          -4 -> 3 holes etc
 
 */
+    manifoldValidity();
     return true;
 }
 
@@ -651,7 +652,7 @@ bool Mesh::manifoldValidity()
 
 
 
-
+    closedTest();
 
 
 
@@ -720,7 +721,7 @@ void Mesh::hashEdgeSortV2(){
 
 
     // use hashmap to quickly look up vertices with the same coordinates
-    std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
+    //std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
 
 
 
@@ -751,27 +752,31 @@ void Mesh::hashEdgeSortV2(){
 
 
         // key not in map
-        if(idxlookup.find(key) == idxlookup.end()) {
+        if(edgelookup.find(key) == edgelookup.end()) {
             //if we did not find the key, we add a new index inot the hash map
             std::vector<int> temp;
+            temp.push_back(0);
             temp.push_back(opposite);
-            idxlookup[key] = temp;
+            edgelookup[key] = temp;
             cleanEdges.push_back(edges[i]);
         }
         else        {
             //if we do find the entry
             //we check through the vector to see if the acomplice vertex has been added
-            std::vector<int>::iterator start = idxlookup[key].begin();
-            std::vector<int>::iterator end = idxlookup[key].end();
+            std::vector<int>::iterator start = edgelookup[key].begin();
+            std::vector<int>::iterator end = edgelookup[key].end();
             bool found = false;
+            //for counter
+            start++;
             while (start != end){
                 //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
+                    *start++;
                     found = true;
                     hitcount++;
-
+                    edgelookup[key][0] += 1;
                     //we need to get the edge that has this
-                    edges[i].trisCommon.push_back();
+                    //edges[i].trisCommon.push_back();
                     //this is a shared edge
 
                     //need to somehow get the triangle from here so that we can build the adjacency list
@@ -783,7 +788,7 @@ void Mesh::hashEdgeSortV2(){
 
             //if it is not found, we add a new entry
             if (!found){
-                idxlookup[key].push_back(opposite);
+                edgelookup[key].push_back(opposite);
                 cleanEdges.push_back(edges[i]);
             }
         }
@@ -800,6 +805,78 @@ void Mesh::hashEdgeSortV2(){
 }
 
 
+void Mesh::closedTest(){
+    //std::vector<int> closeness(edges.size(),0);
+    int closeCounter = 0;
+    //std::cout << "Test1" << std::endl;
+    for(auto i = edgelookup.begin(); i != edgelookup.end(); i++){
+        //we need to go through all edges
+        //then we need to look for that edge in the triangle list
+        //if it shows up twice, it works
+        /*for (int j = 0; j < tris.size(); j++){
+            if (edges[i].v[0] == tris[j].v[0] && edges[i].v[1] == tris[j].v[1]){
+                closeness[i]++;
+            }
+            else if(edges[i].v[0] == tris[j].v[1] && edges[i].v[1] == tris[j].v[2]){
+                closeness[i]++;
+            }
+            else if(edges[i].v[0] == tris[j].v[2] && edges[i].v[1] == tris[j].v[0]){
+                closeness[i]++;
+            }
+        }*/
+        //std::cout << "Test3" << std::endl;
+
+        if (i->second[0] != i->second.size()-1){
+            //std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
+            //SHOW SHAUN!!!!!!!!!!!!!
+            closeCounter++;
+            //closeCounter += i->second.size()-1 - i->second[0];
+        }
+
+    }
+    //std::cout << "Test2" << std::endl;
+    /*
+    for(int i = 0; i < closeness.size(); i++){
+        if (closeness[i] < 2){
+            closeCounter++;
+        }
+    }*/
+
+    std::cout << "Found " << closeCounter << " non-closed triagles" << std::endl;
+}
+
+
+
+void Mesh::buildAdjList(){
+    /*std::vector<std::vector<Edge>> adj;
+    int size = hashmap.size();
+    for (int i = 0; i < size; i++){
+
+        std::vector<int>::iterator start1 = edgelookup[key].begin();
+        std::vector<int>::iterator end1 = edgelookup[key].end();
+        bool found = false;
+        while (start1 != end1){
+            //if we do find it, we break as it is already added, thus a duplciate edge
+            std::vector<Edge>::iterator start2 = edges.begin();
+            std::vector<Edge>::iterator end2 = edges.end();
+
+            while(start2 != end2){
+                if (i == *start2.v[0] && *start1 == *start2.v[1]){
+
+                }
+                else if (i == *start2.v[1] && *start1 == *start2.v[0]){
+
+                }
+            }
+
+
+            start1++;
+        }
+    }
+
+
+*/
+}
 
 void Mesh::loadBunny(){
     readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");

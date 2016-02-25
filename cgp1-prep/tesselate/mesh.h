@@ -87,12 +87,15 @@ private:
     long hashFuncAdv(Edge edge);
     long hashFuncAdd(Edge edge);
 
+    void closedTest();
+    void buildAdjList();
     void naiveEdgeSort();
     void hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash);
     void hashEdgeSortV3(bool basicAddHash ,bool midpointHash, bool complexAddHash, bool advHash);
     void hashEdgeSortV2();
     void buildDirtyEdges();
 
+    std::unordered_map<int, vector<int>> edgelookup;
 
 
     //added in
