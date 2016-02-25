@@ -226,21 +226,18 @@ void Mesh::buildTransform(glm::mat4x4 &tfm)
     tfm = glm::scale(tfm, glm::vec3(scale));
 }
 
-Mesh::Mesh()
-{
+Mesh::Mesh(){
     col = stdCol;
     scale = 1.0f;
     xrot = yrot = zrot = 0.0f;
     trx = cgp::Vector(0.0f, 0.0f, 0.0f);
 }
 
-Mesh::~Mesh()
-{
+Mesh::~Mesh(){
     clear();
 }
 
-void Mesh::clear()
-{
+void Mesh::clear(){
     verts.clear();
     tris.clear();
     geom.clear();
@@ -251,13 +248,12 @@ void Mesh::clear()
     for(int i = 0; i < (int) boundspheres.size(); i++)
         boundspheres[i].ind.clear();
     boundspheres.clear();
-
+    edges.clear();
     //added
     edges.clear();
 }
 
-bool Mesh::genGeometry(View * view, ShapeDrawData &sdd)
-{
+bool Mesh::genGeometry(View * view, ShapeDrawData &sdd){
     vector<int> faces;
     int t, p;
     glm::mat4x4 tfm;
@@ -300,8 +296,7 @@ bool Mesh::genGeometry(View * view, ShapeDrawData &sdd)
        return false;
 }
 
-void Mesh::boxFit(float sidelen)
-{
+void Mesh::boxFit(float sidelen){
     cgp::Point pnt;
     cgp::Vector shift, diag, halfdiag;
     float scale;
@@ -489,20 +484,17 @@ bool Mesh::basicValidity()
 {
 
 
-
-    bool checkEuler = true;
-    bool checkDangVert = false;
-    bool checkEdgeVertBounds = false;
     bool findCleanEdges = true;
+    bool checkEuler = true;
+    bool checkDangVert = true;
+    bool checkEdgeVertBounds = false;
+
 
 
     if (findCleanEdges){
         buildDirtyEdges();
         hashEdgeSortV2();
     }
-
-
-
 
 
 
@@ -519,16 +511,19 @@ bool Mesh::basicValidity()
 
         int result =  no_vert_clean - no_edges_clean + no_trinagles;
 
-        if (result == 2){
+        /*if (result == 2){
             std::cout << "Genus is 0: There should be no holes in the model" << std::endl;
         }
         else{
-            std::cout << "Genus is " << ((result-2)/(-2)) << ": Model has holes and is therefore invalid" << std::endl;
+
             return false;
-        }
+        }*/
+        ///std::cout << "Genus is " << ((result-2)/(-2)) << ": " << std::endl;
+        std::cout << "Eulers characteristic Equation = " << result  << std::endl;
+
 
         //added
-        std::cout << "Model conforms to Euler's characteristic..." << std::endl;
+        //std::cout << "Model conforms to Euler's characteristic..." << std::endl;
     }
 
     if (checkDangVert){
@@ -539,22 +534,28 @@ bool Mesh::basicValidity()
 
 
 
-
+        //loop through triangle list
         for (int k = 0; k < triSize; k++){
+            //go through each vertex in the triangles
             for (int j = 0; j < 3; j++){
                 dangling[tris[k].v[j]]++;
             }
         }
 
 
+
+
+
         int danglingSize = dangling.size();
-        for (int p = 0; p < danglingSize; p++){
+        int counter = dangling.size() - verts.size();
+        /*for (int p = 0; p < danglingSize; p++){
             if (dangling[p] == 0){
                 std::cout << "Error: Dangling vertex found" << std::endl;
-                return false;
+                counter++;
+                //return false;
             }
-        }
-        std::cout << "No dangling vertices found..." << std::endl;
+        }*/
+        std::cout << "No dangling vertices found..." << counter << std::endl;
     }
 
 
@@ -638,7 +639,7 @@ bool Mesh::basicValidity()
         //          -4 -> 3 holes etc
 
 */
-    return false;
+    return true;
 }
 
 bool Mesh::manifoldValidity()
@@ -689,9 +690,9 @@ void Mesh::buildDirtyEdges(){
 
         //this is used for the adjacency list later
         //when we encounter a duplicate edge, we need to merge these vectors to form the adjacency list
-        /*e1.trisCommon.push_back(i);
+        e1.trisCommon.push_back(i);
         e2.trisCommon.push_back(i);
-        e3.trisCommon.push_back(i);*/
+        e3.trisCommon.push_back(i);
 
 
         edges.push_back(e1);
@@ -721,6 +722,8 @@ void Mesh::hashEdgeSortV2(){
     // use hashmap to quickly look up vertices with the same coordinates
     std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
 
+
+
     // remove duplicate edges
     for(i = 0; i < (int) edges.size(); i++){
 
@@ -740,10 +743,11 @@ void Mesh::hashEdgeSortV2(){
             //key = hashVert(verts[edges[i].v[1]]);
             key = edges[i].v[1];
             opposite = edges[i].v[0];
+            if (edges[i].v[0] == edges[i].v[1]){
+                counter++;
+            }
         }
-        else{
-            counter++;
-        }
+
 
 
         // key not in map
@@ -766,6 +770,8 @@ void Mesh::hashEdgeSortV2(){
                     found = true;
                     hitcount++;
 
+                    //we need to get the edge that has this
+                    edges[i].trisCommon.push_back();
                     //this is a shared edge
 
                     //need to somehow get the triangle from here so that we can build the adjacency list

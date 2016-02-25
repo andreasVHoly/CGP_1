@@ -39,7 +39,7 @@ struct Edge
         v[1] = v2;
     }
 
-  
+
 
 };
 
@@ -56,7 +56,7 @@ public:
     /**
      * Test whether a point falls inside the sphere
      * @param pnt   point to test for containment
-     * @retval true if the point falls within the sphere, 
+     * @retval true if the point falls within the sphere,
      * @retval false otherwise
      */
     bool pointInSphere(cgp::Point pnt);
@@ -78,7 +78,7 @@ private:
 
     cgp::BoundBox bbox;
 
-    //std::vector<> adjList; 
+    //std::vector<> adjList;
     std::vector<Edge> edges;
 
 
@@ -94,7 +94,7 @@ private:
     void buildDirtyEdges();
 
 
-    
+
     //added in
 
 
@@ -164,7 +164,7 @@ public:
 
     void loadBunny();
     void loadDragon();
-	
+
 
 
     ShapeGeometry geom;         ///< renderable version of mesh
