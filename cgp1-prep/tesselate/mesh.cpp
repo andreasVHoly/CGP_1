@@ -490,7 +490,7 @@ bool Mesh::basicValidity()
 
 
 
-    bool checkEuler = false;
+    bool checkEuler = true;
     bool checkDangVert = false;
     bool checkEdgeVertBounds = false;
     bool findCleanEdges = true;
@@ -512,20 +512,23 @@ bool Mesh::basicValidity()
         std::cout << "Checking Euler's characteristic..." << std::endl;
 
         //1. report euler's characteristic,
-        naiveEdgeSort();
-        std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
-        std::cout << "no clean verts: " << no_vert_clean << std::endl;
-        std::cout << "no dirty edges: " << no_edges_dirty << std::endl;
-        std::cout << "no clean edges: " << no_edges_clean << std::endl;
-        std::cout << "no triangles: " << no_trinagles << std::endl;
+        std::cout << "Eulers characteristic: V - E + T = 2 - 2G" << std::endl;
+        std::cout << "V = " << no_vert_clean << std::endl;
+        std::cout << "E = " << no_edges_clean << std::endl;
+        std::cout << "T = " << no_trinagles << std::endl;
 
+        int result =  no_vert_clean - no_edges_clean + no_trinagles;
 
+        if (result == 2){
+            std::cout << "Genus is 0: There should be no holes in the model" << std::endl;
+        }
+        else{
+            std::cout << "Genus is " << ((result-2)/(-2)) << ": Model has holes and is therefore invalid" << std::endl;
+            return false;
+        }
 
-
-        no_edges_clean = edges.size();
-        no_edges_dirty = no_vert_dirty;
         //added
-        std::cout << "Models conforms to Euler's characteristic..." << std::endl;
+        std::cout << "Model conforms to Euler's characteristic..." << std::endl;
     }
 
     if (checkDangVert){
@@ -673,24 +676,6 @@ bool Mesh::manifoldValidity()
 }
 
 
-//added
-void Mesh::naiveEdgeSort(){
-    for (int i = 0; i < tris.size(); i++){
-        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
-        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
-        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
-
-        if (!findEdge(edges, e1)){
-            edges.push_back(e1);
-        }
-        if (!findEdge(edges, e2)){
-            edges.push_back(e2);
-        }
-        if (!findEdge(edges, e3)){
-            edges.push_back(e3);
-        }
-    }
-}
 
 
 void Mesh::buildDirtyEdges(){
@@ -714,6 +699,196 @@ void Mesh::buildDirtyEdges(){
         edges.push_back(e3);
 
     }
+}
+
+
+
+
+
+
+
+
+void Mesh::hashEdgeSortV2(){
+
+
+    std::cout << ">>>>>> running hash edge sort v2.0" << std::endl;
+
+    vector<Edge> cleanEdges;
+    int key;
+    int i, hitcount = 0, counter = 0;
+
+
+    // use hashmap to quickly look up vertices with the same coordinates
+    std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
+
+    // remove duplicate edges
+    for(i = 0; i < (int) edges.size(); i++){
+
+
+        key = 10000000;
+        int opposite = 1000000;
+        if (edges[i].v[0] < edges[i].v[1]){
+            //key = hashVert(verts[edges[i].v[0]]);
+            key = edges[i].v[0];
+            opposite = edges[i].v[1];
+            /*if (edges[i].v[0] == edges[i].v[1]){
+                counter++;
+            }*/
+        }
+        else if (edges[i].v[0] >= edges[i].v[1]){
+        //else{
+            //key = hashVert(verts[edges[i].v[1]]);
+            key = edges[i].v[1];
+            opposite = edges[i].v[0];
+        }
+        else{
+            counter++;
+        }
+
+
+        // key not in map
+        if(idxlookup.find(key) == idxlookup.end()) {
+            //if we did not find the key, we add a new index inot the hash map
+            std::vector<int> temp;
+            temp.push_back(opposite);
+            idxlookup[key] = temp;
+            cleanEdges.push_back(edges[i]);
+        }
+        else        {
+            //if we do find the entry
+            //we check through the vector to see if the acomplice vertex has been added
+            std::vector<int>::iterator start = idxlookup[key].begin();
+            std::vector<int>::iterator end = idxlookup[key].end();
+            bool found = false;
+            while (start != end){
+                //if we do find it, we break as it is already added, thus a duplciate edge
+                if (*start == opposite){
+                    found = true;
+                    hitcount++;
+
+                    //this is a shared edge
+
+                    //need to somehow get the triangle from here so that we can build the adjacency list
+
+                    break;
+                }
+                start++;
+            }
+
+            //if it is not found, we add a new entry
+            if (!found){
+                idxlookup[key].push_back(opposite);
+                cleanEdges.push_back(edges[i]);
+            }
+        }
+    }
+
+    cerr << "condition called " << counter << std::endl;
+    cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
+    cerr << "clean edges = " << (int) cleanEdges.size() << endl;
+    no_edges_clean = cleanEdges.size();
+    no_edges_dirty = edges.size();
+
+    edges.clear();
+    edges = cleanEdges;
+}
+
+
+
+void Mesh::loadBunny(){
+    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");
+}
+
+
+void Mesh::loadDragon(){
+    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/dragon.stl");
+}
+
+//UNUSED CODE/PREVIOUS ATTEMPTS
+void Mesh::naiveEdgeSort(){
+    for (int i = 0; i < tris.size(); i++){
+        Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
+        Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
+
+        if (!findEdge(edges, e1)){
+            edges.push_back(e1);
+        }
+        if (!findEdge(edges, e2)){
+            edges.push_back(e2);
+        }
+        if (!findEdge(edges, e3)){
+            edges.push_back(e3);
+        }
+    }
+}
+
+//hash both vertices
+long Mesh::hashFuncBasic(Edge edge){
+    long hash1 = hashVert(verts[edge.v[0]]);
+    long hash2 = hashVert(verts[edge.v[1]]);
+    long hash = hash1 + hash2;
+    return hash;
+}
+
+
+long Mesh::hashFuncAdv(Edge edge){
+    long x, y, z;
+    float range = 3000.0f;
+    long lrangesq, lrange = 3000;
+
+    lrangesq = lrange * lrange;
+
+
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    // discretise vertex within bounds of the enclosing bounding box
+    x = (long) ((( (p1.x - bbox.min.x) + (p2.x - bbox.min.x) ) * range) / bbox.diagLen()) * lrangesq;
+    y = (long) ((( (p1.y - bbox.min.y) + (p2.y - bbox.min.y) ) * range) / bbox.diagLen()) * lrange;
+    z = (long) ((( (p1.z - bbox.min.z) + (p2.z - bbox.min.z) ) * range) / bbox.diagLen());
+    return x+y+z;
+}
+
+
+
+long Mesh::hashFuncAdd(Edge edge){
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    float newX = p1.x + p2.x;
+    float newY = p1.y + p2.y;
+    float newZ = p1.z + p2.z;
+
+    cgp::Point mid = cgp::Point(newX,newY,newZ);
+
+    long hash = hashVert(mid);
+
+    return hash;
+}
+
+
+//hash mid point
+long Mesh::hashFuncMidpoint(Edge edge){
+
+    cgp::Point p1 = verts[edge.v[0]];
+    cgp::Point p2 = verts[edge.v[1]];
+
+    float newX = p1.x + p2.x;
+    float newY = p1.y + p2.y;
+    float newZ = p1.z + p2.z;
+    newX = newX/2;
+    newY = newY/2;
+    newZ = newZ/2;
+    //now we have gotten new midpoint
+
+    cgp::Point mid = cgp::Point(newX,newY,newZ);
+
+
+
+    long hash = hashVert(mid);
+
+    return hash;
 }
 
 
@@ -816,180 +991,4 @@ void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHas
 
     edges.clear();
     edges = cleanEdges;
-}
-
-
-
-
-
-
-void Mesh::hashEdgeSortV2(){
-
-
-    std::cout << ">>>>>> running hash edge sort v2.0" << std::endl;
-
-    vector<Edge> cleanEdges;
-    int key;
-    int i, hitcount = 0, counter = 0;
-
-
-    // use hashmap to quickly look up vertices with the same coordinates
-    std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
-
-    // remove duplicate edges
-    for(i = 0; i < (int) edges.size(); i++){
-
-
-        key = 10000000;
-        int opposite = 1000000;
-        if (edges[i].v[0] < edges[i].v[1]){
-            //key = hashVert(verts[edges[i].v[0]]);
-            key = edges[i].v[0];
-            opposite = edges[i].v[1];
-            /*if (edges[i].v[0] == edges[i].v[1]){
-                counter++;
-            }*/
-        }
-        else if (edges[i].v[0] >= edges[i].v[1]){
-        //else{
-            //key = hashVert(verts[edges[i].v[1]]);
-            key = edges[i].v[1];
-            opposite = edges[i].v[0];
-        }
-        else{
-            counter++;
-        }
-
-
-        // key not in map
-        if(idxlookup.find(key) == idxlookup.end()) {
-            //if we did not find the key, we add a new index inot the hash map
-            std::vector<int> temp;
-            temp.push_back(opposite);
-            idxlookup[key] = temp;
-            cleanEdges.push_back(edges[i]);
-        }
-        else        {
-            //if we do find the entry
-            //we check through the vector to see if the acomplice vertex has been added
-            std::vector<int>::iterator start = idxlookup[key].begin();
-            std::vector<int>::iterator end = idxlookup[key].end();
-            bool found = false;
-            while (start != end){
-                //if we do find it, we break as it is already added, thus a duplciate edge
-                if (*start == opposite){
-                    found = true;
-                    hitcount++;
-
-                    //this is a shared edge
-
-                    //need to somehow get the triangle from here so that we can build the adjacency list
-
-                    break;
-                }
-                start++;
-            }
-
-            //if it is not found, we add a new entry
-            if (!found){
-                idxlookup[key].push_back(opposite);
-                cleanEdges.push_back(edges[i]);
-            }
-        }
-    }
-
-    cerr << "condition called " << counter << std::endl;
-    cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
-    cerr << "clean edges = " << (int) cleanEdges.size() << endl;
-    no_edges_clean = cleanEdges.size();
-    no_edges_dirty = edges.size();
-
-    edges.clear();
-    edges = cleanEdges;
-}
-
-
-
-
-
-
-//hash both vertices
-long Mesh::hashFuncBasic(Edge edge){
-    long hash1 = hashVert(verts[edge.v[0]]);
-    long hash2 = hashVert(verts[edge.v[1]]);
-    long hash = hash1 + hash2;
-    return hash;
-}
-
-
-long Mesh::hashFuncAdv(Edge edge){
-    long x, y, z;
-    float range = 3000.0f;
-    long lrangesq, lrange = 3000;
-
-    lrangesq = lrange * lrange;
-
-
-    cgp::Point p1 = verts[edge.v[0]];
-    cgp::Point p2 = verts[edge.v[1]];
-
-    // discretise vertex within bounds of the enclosing bounding box
-    x = (long) ((( (p1.x - bbox.min.x) + (p2.x - bbox.min.x) ) * range) / bbox.diagLen()) * lrangesq;
-    y = (long) ((( (p1.y - bbox.min.y) + (p2.y - bbox.min.y) ) * range) / bbox.diagLen()) * lrange;
-    z = (long) ((( (p1.z - bbox.min.z) + (p2.z - bbox.min.z) ) * range) / bbox.diagLen());
-    return x+y+z;
-}
-
-
-
-long Mesh::hashFuncAdd(Edge edge){
-    cgp::Point p1 = verts[edge.v[0]];
-    cgp::Point p2 = verts[edge.v[1]];
-
-    float newX = p1.x + p2.x;
-    float newY = p1.y + p2.y;
-    float newZ = p1.z + p2.z;
-
-    cgp::Point mid = cgp::Point(newX,newY,newZ);
-
-    long hash = hashVert(mid);
-
-    return hash;
-}
-
-
-//hash mid point
-long Mesh::hashFuncMidpoint(Edge edge){
-
-    cgp::Point p1 = verts[edge.v[0]];
-    cgp::Point p2 = verts[edge.v[1]];
-
-    float newX = p1.x + p2.x;
-    float newY = p1.y + p2.y;
-    float newZ = p1.z + p2.z;
-    newX = newX/2;
-    newY = newY/2;
-    newZ = newZ/2;
-    //now we have gotten new midpoint
-
-    cgp::Point mid = cgp::Point(newX,newY,newZ);
-
-
-
-    long hash = hashVert(mid);
-
-    return hash;
-}
-
-
-
-
-
-void Mesh::loadBunny(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");
-}
-
-
-void Mesh::loadDragon(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/dragon.stl");
 }
