@@ -18,6 +18,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <unordered_map>
 
+
 using namespace std;
 using namespace cgp;
 
@@ -399,7 +400,7 @@ bool Mesh::readSTL(string filename)
                 inpos += 12;
             }
 
-            
+
 
 
             tris.push_back(tri);
@@ -413,7 +414,7 @@ bool Mesh::readSTL(string filename)
 
         cerr << "num vertices = " << (int) verts.size() << endl;
         cerr << "num triangles = " << (int) tris.size() << endl;
-        
+
         no_trinagles = tris.size();
         no_vert_dirty = verts.size();
         no_edges_dirty = edges.size();
@@ -509,7 +510,7 @@ bool Mesh::basicValidity()
 
     if (checkEuler){
         std::cout << "Checking Euler's characteristic..." << std::endl;
-    
+
         //1. report euler's characteristic,
         naiveEdgeSort();
         std::cout << "no dirty verts: " << no_vert_dirty << std::endl;
@@ -526,7 +527,7 @@ bool Mesh::basicValidity()
         //added
         std::cout << "Models conforms to Euler's characteristic..." << std::endl;
     }
-    
+
     if (checkDangVert){
         //2. no dangling vertices
 
@@ -534,7 +535,7 @@ bool Mesh::basicValidity()
         std::vector<int> dangling(no_vert_clean,0);
 
 
-        
+
 
         for (int k = 0; k < triSize; k++){
             for (int j = 0; j < 3; j++){
@@ -553,7 +554,7 @@ bool Mesh::basicValidity()
         std::cout << "No dangling vertices found..." << std::endl;
     }
 
-    
+
 
 
     if (checkEdgeVertBounds){
@@ -577,14 +578,14 @@ bool Mesh::basicValidity()
         std::cout << "No indices are out of bounds..." << std::endl;
     }
 
-    
+
     //using Eulers Charac
 
     //we get the sizes needed for the calculation
 
     //added
 
-    
+
 
 
 
@@ -595,7 +596,7 @@ bool Mesh::basicValidity()
 
     //long calc1 = no_vert_clean - no_edges_dirty + no_trinagles;
 
-    
+
     //std::cout << "calc1 result: " << calc1 << std::endl;
 /*
     switch(calc1){
@@ -698,7 +699,7 @@ void Mesh::buildDirtyEdges(){
     for (int i = 0; i < (int) tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
         Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
-        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);  
+        Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
 
 
         //this is used for the adjacency list later
@@ -709,9 +710,9 @@ void Mesh::buildDirtyEdges(){
 
 
         edges.push_back(e1);
-        edges.push_back(e2);   
+        edges.push_back(e2);
         edges.push_back(e3);
-        
+
     }
 }
 
@@ -739,7 +740,7 @@ void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHas
     vector<Edge> cleanEdges;
     long key;
     int i, p, hitcount = 0;
-    
+
 
     // use hashmap to quickly look up vertices with the same coordinates
     std::unordered_map<long, int[2]> idxlookup; // key is concatenation of vertex position, value is index into the cleanverts vector
@@ -762,7 +763,7 @@ void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHas
         }
 
 
-        
+
         if(idxlookup.find(key) == idxlookup.end()) // key not in map
         {
             idxlookup[key][0] = edges[i].v[0]; // put index in map for quick lookup
@@ -803,10 +804,10 @@ void Mesh::hashEdgeSort(bool basicAddHash ,bool midpointHash, bool complexAddHas
             }
 
 
-            
+
         }
     }
-    
+
 
     cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
     cerr << "clean edges = " << (int) cleanEdges.size() << endl;
@@ -830,14 +831,14 @@ void Mesh::hashEdgeSortV2(){
     vector<Edge> cleanEdges;
     int key;
     int i, hitcount = 0, counter = 0;
-    
+
 
     // use hashmap to quickly look up vertices with the same coordinates
     std::unordered_map<int, vector<int>> idxlookup; // key is concatenation of vertex position, value is index into
 
     // remove duplicate edges
     for(i = 0; i < (int) edges.size(); i++){
-        
+
 
         key = 10000000;
         int opposite = 1000000;
@@ -858,14 +859,14 @@ void Mesh::hashEdgeSortV2(){
         else{
             counter++;
         }
-        
-        
+
+
         // key not in map
         if(idxlookup.find(key) == idxlookup.end()) {
             //if we did not find the key, we add a new index inot the hash map
             std::vector<int> temp;
             temp.push_back(opposite);
-            idxlookup[key] = temp; 
+            idxlookup[key] = temp;
             cleanEdges.push_back(edges[i]);
         }
         else        {
@@ -891,12 +892,12 @@ void Mesh::hashEdgeSortV2(){
 
             //if it is not found, we add a new entry
             if (!found){
-                idxlookup[key].push_back(opposite); 
+                idxlookup[key].push_back(opposite);
                 cleanEdges.push_back(edges[i]);
             }
         }
     }
-    
+
     cerr << "condition called " << counter << std::endl;
     cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
     cerr << "clean edges = " << (int) cleanEdges.size() << endl;
@@ -912,7 +913,7 @@ void Mesh::hashEdgeSortV2(){
 
 
 
-//hash both vertices 
+//hash both vertices
 long Mesh::hashFuncBasic(Edge edge){
     long hash1 = hashVert(verts[edge.v[0]]);
     long hash2 = hashVert(verts[edge.v[1]]);
@@ -952,14 +953,14 @@ long Mesh::hashFuncAdd(Edge edge){
     cgp::Point mid = cgp::Point(newX,newY,newZ);
 
     long hash = hashVert(mid);
-    
+
     return hash;
 }
 
 
 //hash mid point
 long Mesh::hashFuncMidpoint(Edge edge){
-    
+
     cgp::Point p1 = verts[edge.v[0]];
     cgp::Point p2 = verts[edge.v[1]];
 
@@ -976,7 +977,7 @@ long Mesh::hashFuncMidpoint(Edge edge){
 
 
     long hash = hashVert(mid);
-    
+
     return hash;
 }
 
@@ -992,27 +993,3 @@ void Mesh::loadBunny(){
 void Mesh::loadDragon(){
     readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/dragon.stl");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
