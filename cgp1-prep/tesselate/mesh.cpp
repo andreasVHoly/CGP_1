@@ -714,7 +714,7 @@ void Mesh::hashEdgeSortV2(){
 
 
     std::cout << ">>>>>> running hash edge sort v2.0" << std::endl;
-
+    int windingError = 0;
     vector<Edge> cleanEdges;
     int key;
     int i, hitcount = 0, counter = 0;
@@ -731,17 +731,13 @@ void Mesh::hashEdgeSortV2(){
 
         key = 10000000;
         int opposite = 1000000;
+
+        //get the key (smaller vertex index) and assign the bigger vertex index to opposite
         if (edges[i].v[0] < edges[i].v[1]){
-            //key = hashVert(verts[edges[i].v[0]]);
             key = edges[i].v[0];
             opposite = edges[i].v[1];
-            /*if (edges[i].v[0] == edges[i].v[1]){
-                counter++;
-            }*/
         }
         else if (edges[i].v[0] >= edges[i].v[1]){
-        //else{
-            //key = hashVert(verts[edges[i].v[1]]);
             key = edges[i].v[1];
             opposite = edges[i].v[0];
             if (edges[i].v[0] == edges[i].v[1]){
@@ -771,12 +767,29 @@ void Mesh::hashEdgeSortV2(){
             while (start != end){
                 //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
-                    //*start++; /WTF IS THIS HERE
-                    found = true;
-                    hitcount++;
+                    //*start++; //WTF IS THIS HERE
+
+                    //CHECKING FOR WINDING TO DETERMINE ORIENTABILITY
+
+                    //if hashmap[smallvert] == v[1]
+                    if (edges[i].v[1] == key && edges[i].v[0] == *start){
+                        //this is wound correctly
+
+                    }
+                    else{
+                        windingError++;
+                    }
+
+
+                    //CHECKING IF THE MODEL IS CLOSED
                     edgelookup[key][0] += 1;
 
 
+
+
+                    //CHECKING HOW MANY DUPLCIATE EDGES THERE ARE
+                    hitcount++;
+                    found = true;
                     break;
                 }
                 start++;
@@ -793,6 +806,7 @@ void Mesh::hashEdgeSortV2(){
     cerr << "condition called " << counter << std::endl;
     cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
     cerr << "clean edges = " << (int) cleanEdges.size() << endl;
+    cout << "Orientable number: " << windingError << endl;
     no_edges_clean = cleanEdges.size();
     no_edges_dirty = edges.size();
 
@@ -809,21 +823,10 @@ void Mesh::closedTest(){
         //we need to go through all edges
         //then we need to look for that edge in the triangle list
         //if it shows up twice, it works
-        /*for (int j = 0; j < tris.size(); j++){
-            if (edges[i].v[0] == tris[j].v[0] && edges[i].v[1] == tris[j].v[1]){
-                closeness[i]++;
-            }
-            else if(edges[i].v[0] == tris[j].v[1] && edges[i].v[1] == tris[j].v[2]){
-                closeness[i]++;
-            }
-            else if(edges[i].v[0] == tris[j].v[2] && edges[i].v[1] == tris[j].v[0]){
-                closeness[i]++;
-            }
-        }*/
-        //std::cout << "Test3" << std::endl;
+
 
         if (i->second[0] != i->second.size()-1){
-            std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
+            //std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
             //SHOW SHAUN!!!!!!!!!!!!!
             //closeCounter++;
             closeCounter += (i->second.size()-1 - i->second[0]);
