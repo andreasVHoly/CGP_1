@@ -112,7 +112,7 @@ void GLWidget::initializeGL()
 void GLWidget::autoLoadModels(){
 
     string choice;
-    std::cout << "Enter selection (d/b/c/p/h(cube_with_hole)/b(basic_cube))" << std::endl;
+    std::cout << "Enter selection (d/b/c/p/h(cube_with_hole)/o(basic_cube))" << std::endl;
     std::cin >> choice;
 
 
@@ -134,7 +134,7 @@ void GLWidget::autoLoadModels(){
         xsect.loadFile(header+"cubewithhole.stl");
     }
     else if (choice == "o"){
-        xsect.loadFile(header+"basic_cube.stl");
+        xsect.loadFile(header+"Cube2.stl");
     }
 
 

@@ -493,17 +493,17 @@ bool Mesh::basicValidity()
 
     //check eulers characteristic
     if (!checkEulerChar()){
-        return false;
+        //return false;
     }
     std::cout << std::endl;
     //2. no dangling vertices
     if (!danglingVerticeCheck()){
-        return false;
+        //return false;
     }
     std::cout << std::endl;
     //3. edge indices within bounds of the vertex list
     if (!vertexBoundsTest()){
-        return false;
+        //return false;
     }
 
     //if we have basic validity we would have reached this point
@@ -524,17 +524,17 @@ bool Mesh::manifoldValidity()
     std::cout << std::endl;
     //1. check the model to see if it is closed
     if (!closedTest()){
-        return false;
+        //return false;
     }
     std::cout << std::endl;
     //2. check to see if the model is orientable
     if (!orientableTest()){
-        return false;
+        //return false;
     }
     std::cout << std::endl;
     //3. check to see if the model is manifold
     if (!manifoldTest()){
-        return false;
+        //return false;
     }
 
     return true;
@@ -601,7 +601,7 @@ bool Mesh::vertexBoundsTest(){
 
 bool Mesh::manifoldTest(){
     std::cout << "Checking manifold validity of model..." << std::endl;
-
+    bool result = true;
     //we make a table for all vertices that contains each source vertex for each vertex
 
 
@@ -646,42 +646,47 @@ bool Mesh::manifoldTest(){
             int destKey = y->first; //this is now the index into the vert_map of the destination vertex
             std::unordered_map<int,int> content2 = vert_map[destKey];
             //content2 here is the destination vertex's destination vertices
+
             for (auto z = content2.begin(); z != content2.end();z++){
                 //z at this point is the dest verts of the dest
 
-
                 //we need to compare k (sources dest verts) to z (dest's dets verts)
-                for (auto k = content.begin(); k != content.end(); k++){
-                    if (k->first == z->first){
-                        //increment
-                        dupCounter++;
-                        //if we have 2 duplciates we are done with this vertex as this is what we are looking for
-                        //we will only ever find a max of 2
-                        if (dupCounter == 2){
-                            break;
-                        }
-                    }
+                if (vert_map[key].find(z->first) != vert_map[key].end()){
+                    dupCounter++;
+                    //increment
+
+                    //if we have 2 duplciates we are done with this vertex as this is what we are looking for
+                    //we will only ever find a max of 2
+
                 }
+
+
             }
 
         }
-        if (dupCounter != 2){
-            std::cout << "non manifold vertex found" << std::endl;
+        if (dupCounter != (int)vert_map[key].size()*2){
+            result = false;
+            break;
+
         }
     }
 
+    if(result){
+        std::cout << "Model is 2-Manifold..." << std::endl;
+    }else{
+        std::cout << "Error: model is not 2 manifold" << std::endl;
+    }
 
 
-    std::cout << "Model is 2-Manifold..." << std::endl;
     return true;
 }
 
 bool Mesh::orientableTest(){
     std::cout << "Checking if model is orientable..." << std::endl;
-    std::cout << "Orientable number: " << windingError << std::endl;
+    //std::cout << "Orientable number: " << windingError << std::endl;
 
     if (windingError > 0){
-        std::cout << "Model is not orientable..." << std::endl;
+        std::cout << "Model is not orientable... ->" << windingError << std::endl;
         return false;
     }
     std::cout << "Model is orientable..." << std::endl;
