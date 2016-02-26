@@ -25,6 +25,16 @@ void TestMesh::testMeshing()
     mesh->readSTL("../meshes/bunny.stl");
     CPPUNIT_ASSERT(mesh->basicValidity());
     CPPUNIT_ASSERT(!mesh->manifoldValidity()); // bunny has known holes in the bottom
+
+
+    /*Mesh mesh2 = new Mesh();
+    mesh2->readSTL("../meshes/dragon.stl");
+    CPPUNIT_ASSERT(mesh->basicValidity());
+    CPPUNIT_ASSERT(!mesh->manifoldValidity()); // bunny has known holes in the bottom
+
+    Mesh mesh3;
+    mesh3.closedTest();*/
+
 }
 
 //#if 0 /* Disabled since it crashes the whole test suite */

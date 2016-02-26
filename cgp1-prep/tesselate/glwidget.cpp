@@ -112,22 +112,29 @@ void GLWidget::initializeGL()
 void GLWidget::autoLoadModels(){
 
     string choice;
-    std::cout << "Enter selection (d/b/c/p)" << std::endl;
+    std::cout << "Enter selection (d/b/c/p/h(cube_with_hole)/b(basic_cube))" << std::endl;
     std::cin >> choice;
 
 
+    std::string header = "/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/";
 
     if (choice == "b"){
-        xsect.loadBunny();
+        xsect.loadFile(header+"bunny.stl");
     }
     else if (choice == "d"){
-        xsect.loadDragon();
+        xsect.loadFile(header+"dragon.stl");
     }
     else if (choice == "c"){
-        xsect.loadCube();
+        xsect.loadFile(header+"cube_broken_norm.stl");
     }
     else if (choice == "p"){
-        xsect.loadPyramid();
+        xsect.loadFile(header+"pyramid.stl");
+    }
+    else if (choice == "h"){
+        xsect.loadFile(header+"cubewithhole.stl");
+    }
+    else if (choice == "o"){
+        xsect.loadFile(header+"basic_cube.stl");
     }
 
 

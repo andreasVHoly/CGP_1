@@ -84,17 +84,7 @@ private:
     int windingError;
 
 
-    void buildAdjList();
-    void naiveEdgeSort();
-    void hashEdgeSort();
-    void buildDirtyEdges();
 
-    bool closedTest();
-    bool manifoldTest();
-    bool checkEulerChar();
-    bool danglingVerticeCheck();
-    bool vertexBoundsTest();
-    bool orientableTest();
 
 
     std::unordered_map<int, vector<int>> edgelookup;
@@ -167,10 +157,21 @@ private:
 
 public:
 
-    void loadBunny();
-    void loadDragon();
-    void loadPyramid();
-    void loadCube();
+    
+    void loadFile(std::string filename);
+
+
+    void buildAdjList();
+    void naiveEdgeSort();
+    void hashEdgeSort();
+    void buildDirtyEdges();
+
+    bool closedTest();
+    bool manifoldTest();
+    bool checkEulerChar();
+    bool danglingVerticeCheck();
+    bool vertexBoundsTest();
+    bool orientableTest();
 
 
 

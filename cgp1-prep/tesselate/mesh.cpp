@@ -602,6 +602,75 @@ bool Mesh::vertexBoundsTest(){
 bool Mesh::manifoldTest(){
     std::cout << "Checking manifold validity of model..." << std::endl;
 
+    //we make a table for all vertices that contains each source vertex for each vertex
+
+
+    std::unordered_map<int, std::unordered_map<int,int>> vert_map;
+
+    //build outer layer of the unordered map
+    /*for (int i = 0; i < verts.size(); i++){
+        vert_map[verts[i]] = std::unordered_map<int,int>;
+    }*/
+
+    for (int j = 0; j < tris.size(); j++){
+        //get the 3 edges
+        int v0 = tris[j].v[0];
+        int v1 = tris[j].v[1];
+        int v2 = tris[j].v[2];
+
+        //edge v0 to v1 and reverse
+        vert_map[v0][v1] = 1;
+        vert_map[v1][v0] = 1;
+        //edge v0 to v2 and reverse
+        vert_map[v0][v2] = 1;
+        vert_map[v2][v0] = 1;
+        //edge v1 to v2 and reverse
+        vert_map[v1][v2] = 1;
+        vert_map[v2][v1] = 1;
+    }
+
+
+    //now we check if each vertex is surrounded by points:
+        //we loop through the new vertex map
+            //for each vertex index, we look at each of its destination vertices
+                //for each destination vertex in the main vertex map, check that:
+                    //at least 2 vertices need to be in common between the destination vertices of the source vertex and the destinaton vertices of the destination vextex
+    //go through all vertices
+    for (auto x = vert_map.begin(); x != vert_map.end(); x++){
+        //go through all destination vertices for the source vertex above
+        int dupCounter = 0;
+        int key = x->first;
+        std::unordered_map<int,int> content = x->second;
+        for (auto y = content.begin(); y != content.end(); y++){
+            //we find the destinaton in the map and loop through its destination's
+            int destKey = y->first; //this is now the index into the vert_map of the destination vertex
+            std::unordered_map<int,int> content2 = vert_map[destKey];
+            //content2 here is the destination vertex's destination vertices
+            for (auto z = content2.begin(); z != content2.end();z++){
+                //z at this point is the dest verts of the dest
+
+
+                //we need to compare k (sources dest verts) to z (dest's dets verts)
+                for (auto k = content.begin(); k != content.end(); k++){
+                    if (k->first == z->first){
+                        //increment
+                        dupCounter++;
+                        //if we have 2 duplciates we are done with this vertex as this is what we are looking for
+                        //we will only ever find a max of 2
+                        if (dupCounter == 2){
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+        if (dupCounter != 2){
+            std::cout << "non manifold vertex found" << std::endl;
+        }
+    }
+
+
 
     std::cout << "Model is 2-Manifold..." << std::endl;
     return true;
@@ -641,6 +710,34 @@ void Mesh::buildDirtyEdges(){
 
     }
 }
+
+bool Mesh::closedTest(){
+    std::cout << "Checking if the model is closed..." << endl;
+    int closeCounter = 0;
+    //std::cout << "Test1" << std::endl;
+    for(auto i = edgelookup.begin(); i != edgelookup.end(); i++){
+        //we need to go through all edges
+        //then we need to look for that edge in the triangle list
+        //if it shows up twice, it works
+
+        if (i->second[0] != i->second.size()-1){
+            //we subtract the differnce
+            closeCounter += (i->second.size()-1 - i->second[0]);
+        }
+
+    }
+    std::cout << "Found " << closeCounter << " non-closed triangles" << std::endl;
+
+    if (closeCounter > 0){
+        std::cout << "Error: Model is not closed..." << endl;
+        return false;
+    }
+
+    std::cout << "Model checked for closeness..." << endl;
+    return true;
+}
+
+
 
 
 void Mesh::hashEdgeSort(){
@@ -695,18 +792,13 @@ void Mesh::hashEdgeSort(){
                     //if hashmap[smallvert] == v[1]
                     if (edges[i].v[1] == key && edges[i].v[0] == *start){
                         //this is wound correctly
-
                     }
                     else{
                         windingError++;
                     }
 
-
                     //CHECKING IF THE MODEL IS CLOSED
                     edgelookup[key][0] += 1;
-
-
-
 
                     //CHECKING HOW MANY DUPLCIATE EDGES THERE ARE
                     hitcount++;
@@ -736,48 +828,9 @@ void Mesh::hashEdgeSort(){
 }
 
 
-bool Mesh::closedTest(){
-    std::cout << "Checking if the model is closed..." << endl;
-    int closeCounter = 0;
-    //std::cout << "Test1" << std::endl;
-    for(auto i = edgelookup.begin(); i != edgelookup.end(); i++){
-        //we need to go through all edges
-        //then we need to look for that edge in the triangle list
-        //if it shows up twice, it works
-
-        if (i->second[0] != i->second.size()-1){
-            //we subtract the differnce
-            closeCounter += (i->second.size()-1 - i->second[0]);
-        }
-
-    }
-    std::cout << "Found " << closeCounter << " non-closed triangles" << std::endl;
-
-    if (closeCounter > 0){
-        std::cout << "Error: Model is not closed..." << endl;
-        return false;
-    }
-
-    std::cout << "Model checked for closeness..." << endl;
-    return true;
-}
 
 
 
-
-void Mesh::loadBunny(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");
-}
-
-
-void Mesh::loadDragon(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/dragon.stl");
-}
-
-void Mesh::loadPyramid(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/pyramid.stl");
-}
-
-void Mesh::loadCube(){
-    readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/cube_broken_norm.stl");
+void Mesh::loadFile(std::string filename){
+    readSTL(filename);
 }
