@@ -602,74 +602,41 @@ bool Mesh::vertexBoundsTest(){
 bool Mesh::manifoldTest(){
     std::cout << "Checking manifold validity of model..." << std::endl;
     bool result = true;
-    //we make a table for all vertices that contains each source vertex for each vertex
 
 
-    std::unordered_map<int, std::unordered_map<int,int>> vert_map;
+    std::vector<std::vector<Triangle>> triangleCont(verts.size());
+    std::vector<std::vector<Edge>> edgeCont(verts.size());
 
-    //build outer layer of the unordered map
-    /*for (int i = 0; i < verts.size(); i++){
-        vert_map[verts[i]] = std::unordered_map<int,int>;
-    }*/
+    for (int i = 0; i < tris.size(); i++){
+        int v0 = tris[i].v[0];
+        int v1 = tris[i].v[1];
+        int v2 = tris[i].v[2];
 
-    for (int j = 0; j < tris.size(); j++){
-        //get the 3 edges
-        int v0 = tris[j].v[0];
-        int v1 = tris[j].v[1];
-        int v2 = tris[j].v[2];
 
-        //edge v0 to v1 and reverse
-        vert_map[v0][v1] = 1;
-        vert_map[v1][v0] = 1;
-        //edge v0 to v2 and reverse
-        vert_map[v0][v2] = 1;
-        vert_map[v2][v0] = 1;
-        //edge v1 to v2 and reverse
-        vert_map[v1][v2] = 1;
-        vert_map[v2][v1] = 1;
+        triangleCont[v0].push_back(tris[i]);
+        triangleCont[v1].push_back(tris[i]);
+        triangleCont[v2].push_back(tris[i]);
+
     }
 
 
-    //now we check if each vertex is surrounded by points:
-        //we loop through the new vertex map
-            //for each vertex index, we look at each of its destination vertices
-                //for each destination vertex in the main vertex map, check that:
-                    //at least 2 vertices need to be in common between the destination vertices of the source vertex and the destinaton vertices of the destination vextex
-    //go through all vertices
-    for (auto x = vert_map.begin(); x != vert_map.end(); x++){
-        //go through all destination vertices for the source vertex above
-        int dupCounter = 0;
-        int key = x->first;
-        std::unordered_map<int,int> content = x->second;
-        for (auto y = content.begin(); y != content.end(); y++){
-            //we find the destinaton in the map and loop through its destination's
-            int destKey = y->first; //this is now the index into the vert_map of the destination vertex
-            std::unordered_map<int,int> content2 = vert_map[destKey];
-            //content2 here is the destination vertex's destination vertices
+    for (int j = 0; j < edges.size(); j++){
+        int v0 = edges[j].v[0];
+        int v1 = edges[j].v[1];
 
-            for (auto z = content2.begin(); z != content2.end();z++){
-                //z at this point is the dest verts of the dest
+        edgeCont[v0].push_back(edges[j]);
+        edgeCont[v1].push_back(edges[j]);
+    }
 
-                //we need to compare k (sources dest verts) to z (dest's dets verts)
-                if (vert_map[key].find(z->first) != vert_map[key].end()){
-                    dupCounter++;
-                    //increment
-
-                    //if we have 2 duplciates we are done with this vertex as this is what we are looking for
-                    //we will only ever find a max of 2
-
-                }
-
-
-            }
-
-        }
-        if (dupCounter != (int)vert_map[key].size()*2){
+    for(int x = 0; x < verts.size(); x++){
+        if (edgeCont[x].size() != triangleCont[x].size()){
+            std::cout << "fuck" << std::endl;
             result = false;
             break;
-
         }
     }
+
+
 
     if(result){
         std::cout << "Model is 2-Manifold..." << std::endl;
