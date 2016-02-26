@@ -771,15 +771,11 @@ void Mesh::hashEdgeSortV2(){
             while (start != end){
                 //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
-                    *start++;
+                    //*start++; /WTF IS THIS HERE
                     found = true;
                     hitcount++;
                     edgelookup[key][0] += 1;
-                    //we need to get the edge that has this
-                    //edges[i].trisCommon.push_back();
-                    //this is a shared edge
 
-                    //need to somehow get the triangle from here so that we can build the adjacency list
 
                     break;
                 }
@@ -827,10 +823,10 @@ void Mesh::closedTest(){
         //std::cout << "Test3" << std::endl;
 
         if (i->second[0] != i->second.size()-1){
-            //std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
+            std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
             //SHOW SHAUN!!!!!!!!!!!!!
-            closeCounter++;
-            //closeCounter += i->second.size()-1 - i->second[0];
+            //closeCounter++;
+            closeCounter += (i->second.size()-1 - i->second[0]);
         }
 
     }
