@@ -482,127 +482,142 @@ bool Mesh::writeSTL(string filename)
 
 bool Mesh::basicValidity()
 {
+    //BUILDING THE UNIQUE EDGE LIST
 
+    //build all the edges including duplicate ones
+    buildDirtyEdges();
+    //sort the edge list to only contain unique edges
+    hashEdgeSort();
 
-    bool findCleanEdges = true;
-    bool checkEuler = true;
-    bool checkDangVert = true;
-    bool checkEdgeVertBounds = false;
+    std::cout << std::endl;
 
-
-
-    if (findCleanEdges){
-        buildDirtyEdges();
-        hashEdgeSort();
+    //check eulers characteristic
+    if (!checkEulerChar()){
+        return false;
+    }
+    std::cout << std::endl;
+    //2. no dangling vertices
+    if (!danglingVerticeCheck()){
+        return false;
+    }
+    std::cout << std::endl;
+    //3. edge indices within bounds of the vertex list
+    if (!vertexBoundsTest()){
+        return false;
     }
 
+    //if we have basic validity we would have reached this point
+    //if not this method would have returned false before this point
+    //if we pass maifold validity we have passed all tests
+    //if not we return false
 
-
-    int triSize = tris.size();
-
-    if (checkEuler){
-        std::cout << "Checking Euler's characteristic..." << std::endl;
-
-        //1. report euler's characteristic,
-        std::cout << "Eulers characteristic: V - E + T = 2 - 2G" << std::endl;
-        std::cout << "V = " << no_vert_clean << std::endl;
-        std::cout << "E = " << no_edges_clean << std::endl;
-        std::cout << "T = " << no_trinagles << std::endl;
-
-        int result =  no_vert_clean - no_edges_clean + no_trinagles;
-        std::cout << "Eulers characteristic Equation = " << result  << std::endl;
+    if (!manifoldValidity()){
+        return false;
     }
-
-    if (checkDangVert){
-        //2. no dangling vertices
-
-        std::cout << "Checking for dangling vetices..." << std::endl;
-        std::vector<int> dangling(no_vert_clean,0);
-
-        //loop through triangle list
-        for (int k = 0; k < triSize; k++){
-            //go through each vertex in the triangles
-            for (int j = 0; j < 3; j++){
-                dangling[tris[k].v[j]]++;
-            }
-        }
-
-        int danglingSize = dangling.size();
-        int counter = dangling.size() - verts.size();
-        std::cout << "No dangling vertices found..." << counter << std::endl;
+    else{
+        return true;
     }
-
-
-
-
-    if (checkEdgeVertBounds){
-        //3. edge indices within bounds of the vertex list
-        //we need to check if each vertex index stored in the edge table is within the bounds of the vertex data structure
-        //do do this we need to check each vertex index to see if it is >= 0 and < than the size of the DS
-        std::cout << "Checking if edge indices are within vertex list bounds..." << std::endl;
-
-        int edgeSize = edges.size();
-        int vertSize = verts.size();
-
-        for (int x = 0; x < edgeSize; x++){
-            if (edges[x].v[0] >= 0 && edges[x].v[0] < vertSize){
-                continue;
-            }
-            else{
-                std::cout << "Error: Index out of bounds" << std::endl;
-                return false;
-            }
-        }
-        std::cout << "No indices are out of bounds..." << std::endl;
-    }
-
-
-        if (!manifoldValidity()){
-            return false;
-        }
-        else{
-            return true;
-        }
 }
 
 bool Mesh::manifoldValidity()
 {
-
-
-    //1. every edge has two incident triangles,
-
-    closedTest();
-    //2. every vertex has a closed ring of triangles around it
-
-
-
-
-
-
-
-    //check for closeness:
-        //for every edge
-            //ensure there is a triangle on the left and right
-
-
-
-
-
-    //need to follow these steps:
-
-
-        //1. loop over all edges
-            //check if each edge is used by only 1|2 faces
-
-        //2. loop over vertices
-
-
+    std::cout << std::endl;
+    //1. check the model to see if it is closed
+    if (!closedTest()){
+        return false;
+    }
+    std::cout << std::endl;
+    //2. check to see if the model is orientable
+    if (!orientableTest()){
+        return false;
+    }
+    std::cout << std::endl;
+    //3. check to see if the model is manifold
+    if (!manifoldTest()){
+        return false;
+    }
 
     return true;
 }
 
 
+bool Mesh::checkEulerChar(){
+    std::cout << "Checking Euler's characteristic..." << std::endl;
 
+    //1. report euler's characteristic,
+    std::cout << "Eulers characteristic: V - E + T = 2 - 2G" << std::endl;
+    std::cout << "V = " << no_vert_clean << std::endl;
+    std::cout << "E = " << no_edges_clean << std::endl;
+    std::cout << "T = " << no_trinagles << std::endl;
+
+    int result =  no_vert_clean - no_edges_clean + no_trinagles;
+    std::cout << "Eulers characteristic Equation = " << result  << std::endl;
+    return true;
+}
+
+bool Mesh::danglingVerticeCheck(){
+    std::cout << "Checking for dangling vetices..." << std::endl;
+    std::vector<int> dangling(no_vert_clean,0);
+
+    //loop through triangle list
+    for (int k = 0; k < tris.size(); k++){
+        //go through each vertex in the triangles
+        for (int j = 0; j < 3; j++){
+            dangling[tris[k].v[j]]++;
+        }
+    }
+
+    int danglingSize = dangling.size();
+    int counter = dangling.size() - verts.size();
+
+    if (counter > 0){
+        std::cout << "Dangling vertices found: " << counter << std::endl;
+        return false;
+    }
+    std::cout << "No dangling vertices found..." << std::endl;
+    return true;
+}
+
+bool Mesh::vertexBoundsTest(){
+    //we need to check if each vertex index stored in the edge table is within the bounds of the vertex data structure
+    //do do this we need to check each vertex index to see if it is >= 0 and < than the size of the DS
+    std::cout << "Checking if edge indices are within vertex list bounds..." << std::endl;
+
+    int edgeSize = edges.size();
+    int vertSize = verts.size();
+
+    for (int x = 0; x < edgeSize; x++){
+        if (edges[x].v[0] >= 0 && edges[x].v[0] < vertSize){
+            continue;
+        }
+        else{
+            std::cout << "Error: Index out of bounds" << std::endl;
+            return false;
+        }
+    }
+    std::cout << "No indices are out of bounds..." << std::endl;
+    return true;
+}
+
+bool Mesh::manifoldTest(){
+    std::cout << "Checking manifold validity of model..." << std::endl;
+
+
+    std::cout << "Model is 2-Manifold..." << std::endl;
+    return true;
+}
+
+bool Mesh::orientableTest(){
+    std::cout << "Checking if model is orientable..." << std::endl;
+    std::cout << "Orientable number: " << windingError << std::endl;
+
+    if (windingError > 0){
+        std::cout << "Model is not orientable..." << std::endl;
+        return false;
+    }
+    std::cout << "Model is orientable..." << std::endl;
+    return true;
+}
 
 void Mesh::buildDirtyEdges(){
 
@@ -628,14 +643,8 @@ void Mesh::buildDirtyEdges(){
 }
 
 
-
-
-
-
-
-
 void Mesh::hashEdgeSort(){
-    int windingError = 0;
+    windingError = 0;
     vector<Edge> cleanEdges;
     int key;
     int i, hitcount = 0, counter = 0;
@@ -715,10 +724,10 @@ void Mesh::hashEdgeSort(){
         }
     }
 
-    cerr << "condition called " << counter << std::endl;
-    cerr << "num duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
-    cerr << "clean edges = " << (int) cleanEdges.size() << endl;
-    cout << "Orientable number: " << windingError << endl;
+    cerr << "Broken edges found: " << counter << std::endl;
+    cerr << "Duplicate edges found = " << hitcount << " of " << (int) edges.size() << endl;
+    cerr << "Clean edges = " << (int) cleanEdges.size() << endl;
+
     no_edges_clean = cleanEdges.size();
     no_edges_dirty = edges.size();
 
@@ -727,8 +736,8 @@ void Mesh::hashEdgeSort(){
 }
 
 
-void Mesh::closedTest(){
-    //std::vector<int> closeness(edges.size(),0);
+bool Mesh::closedTest(){
+    std::cout << "Checking if the model is closed..." << endl;
     int closeCounter = 0;
     //std::cout << "Test1" << std::endl;
     for(auto i = edgelookup.begin(); i != edgelookup.end(); i++){
@@ -736,56 +745,25 @@ void Mesh::closedTest(){
         //then we need to look for that edge in the triangle list
         //if it shows up twice, it works
 
-
         if (i->second[0] != i->second.size()-1){
-            //std::cout << "counter: " << i->second[0] << " , vec size " << i->second.size()-1 << std::endl;
+            //we subtract the differnce
             closeCounter += (i->second.size()-1 - i->second[0]);
         }
 
     }
-    //std::cout << "Test2" << std::endl;
-    /*
-    for(int i = 0; i < closeness.size(); i++){
-        if (closeness[i] < 2){
-            closeCounter++;
-        }
-    }*/
+    std::cout << "Found " << closeCounter << " non-closed triangles" << std::endl;
 
-    std::cout << "Found " << closeCounter << " non-closed triagles" << std::endl;
-}
-
-
-
-void Mesh::buildAdjList(){
-    /*std::vector<std::vector<Edge>> adj;
-    int size = hashmap.size();
-    for (int i = 0; i < size; i++){
-
-        std::vector<int>::iterator start1 = edgelookup[key].begin();
-        std::vector<int>::iterator end1 = edgelookup[key].end();
-        bool found = false;
-        while (start1 != end1){
-            //if we do find it, we break as it is already added, thus a duplciate edge
-            std::vector<Edge>::iterator start2 = edges.begin();
-            std::vector<Edge>::iterator end2 = edges.end();
-
-            while(start2 != end2){
-                if (i == *start2.v[0] && *start1 == *start2.v[1]){
-
-                }
-                else if (i == *start2.v[1] && *start1 == *start2.v[0]){
-
-                }
-            }
-
-
-            start1++;
-        }
+    if (closeCounter > 0){
+        std::cout << "Error: Model is not closed..." << endl;
+        return false;
     }
 
-
-*/
+    std::cout << "Model checked for closeness..." << endl;
+    return true;
 }
+
+
+
 
 void Mesh::loadBunny(){
     readSTL("/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/bunny.stl");

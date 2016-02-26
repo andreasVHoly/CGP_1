@@ -81,13 +81,21 @@ private:
     //std::vector<> adjList;
     std::vector<Edge> edges;
 
+    int windingError;
 
 
-    void closedTest();
     void buildAdjList();
     void naiveEdgeSort();
     void hashEdgeSort();
     void buildDirtyEdges();
+
+    bool closedTest();
+    bool manifoldTest();
+    bool checkEulerChar();
+    bool danglingVerticeCheck();
+    bool vertexBoundsTest();
+    bool orientableTest();
+
 
     std::unordered_map<int, vector<int>> edgelookup;
 
