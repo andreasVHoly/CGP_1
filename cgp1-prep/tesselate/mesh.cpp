@@ -776,6 +776,8 @@ void Mesh::hashEdgeSort(){
             std::vector<int> temp;
             temp.push_back(0);
             temp.push_back(opposite);
+            companion[key].push_back(0);
+            companion[key].push_back(edges[i].v[0]);
             edgelookup[key] = temp;
             cleanEdges.push_back(edges[i]);
         }
@@ -787,6 +789,7 @@ void Mesh::hashEdgeSort(){
             bool found = false;
             //for counter
             start++;
+            int count1 = 1;
             while (start != end){
                 //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
@@ -795,12 +798,18 @@ void Mesh::hashEdgeSort(){
                     //CHECKING FOR WINDING TO DETERMINE ORIENTABILITY
 
                     //if hashmap[smallvert] == v[1]
-                    if (edges[i].v[1] == key && edges[i].v[0] == *start){
+                    /*if (edges[i].v[1] == key && edges[i].v[0] == *start){
                         //this is wound correctly
                     }
                     else{
                         windingError++;
+                    }*/
+
+                    if (edges[i].v[0] == companion[key][count1]){
+                        //have different winding
+                        windingError++;
                     }
+
 
                     //CHECKING IF THE MODEL IS CLOSED
                     edgelookup[key][0] += 1;
@@ -811,11 +820,13 @@ void Mesh::hashEdgeSort(){
                     break;
                 }
                 start++;
+                count1++;
             }
 
             //if it is not found, we add a new entry
             if (!found){
                 edgelookup[key].push_back(opposite);
+                companion[key].push_back(edges[i].v[0]);
                 cleanEdges.push_back(edges[i]);
             }
         }

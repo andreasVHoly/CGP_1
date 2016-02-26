@@ -88,7 +88,7 @@ private:
 
 
     std::unordered_map<int, vector<int>> edgelookup;
-
+    std::unordered_map<int, vector<int>> companion;
 
     //added in
 
@@ -157,7 +157,7 @@ private:
 
 public:
 
-    
+
     void loadFile(std::string filename);
 
 
