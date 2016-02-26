@@ -112,14 +112,24 @@ void GLWidget::initializeGL()
 void GLWidget::autoLoadModels(){
 
     string choice;
-    std::cout << "Enter selection (d/b)" << std::endl;
+    std::cout << "Enter selection (d/b/c/p)" << std::endl;
     std::cin >> choice;
-    if (choice == "d"){
-        xsect.loadDragon();
-    }
-    else if (choice == "b"){
+
+
+
+    if (choice == "b"){
         xsect.loadBunny();
     }
+    else if (choice == "d"){
+        xsect.loadDragon();
+    }
+    else if (choice == "c"){
+        xsect.loadCube();
+    }
+    else if (choice == "p"){
+        xsect.loadPyramid();
+    }
+
 
 
 }
