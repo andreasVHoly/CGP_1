@@ -95,6 +95,7 @@ void TestMesh::testMeshing()
         CPPUNIT_ASSERT(test7.readSTL(header+"TestDanglingVertices.stl"));
         test7.prepareEdges();
         //CPPUNIT_ASSERT(!test7.danglingVerticeCheck());
+        //TODO test fails
     }
 
     //TEST 8
@@ -103,6 +104,8 @@ void TestMesh::testMeshing()
         Mesh test8;
         CPPUNIT_ASSERT(test8.readSTL(header+"TestGenus1.stl"));
         test8.prepareEdges();
+        CPPUNIT_ASSERT(test8.vertexBoundsTest());
+        //TODO how to prove positive case
     }
 
     //TEST 9
@@ -111,6 +114,7 @@ void TestMesh::testMeshing()
         Mesh test9;
         CPPUNIT_ASSERT(test9.readSTL(header+"TestGenus1.stl"));
         test9.prepareEdges();
+        //TODO how to tets negative case?
     }
 
     //TEST 10
@@ -144,26 +148,37 @@ void TestMesh::testMeshing()
 
     //TEST 13
     //TESTING ORIENTABLE METHOD - ASSERT FALSE CASE
-    Mesh test13;
-    CPPUNIT_ASSERT(test13.readSTL(header+"TestOrientable.stl"));
-    CPPUNIT_ASSERT(test13.basicValidity());
-    CPPUNIT_ASSERT(test13.closedTest());
-    CPPUNIT_ASSERT(!test13.orientableTest());
+    if (true){
+        Mesh test13;
+        CPPUNIT_ASSERT(test13.readSTL(header+"TestOrientable.stl"));
+        CPPUNIT_ASSERT(test13.basicValidity());
+        CPPUNIT_ASSERT(test13.closedTest());
+        CPPUNIT_ASSERT(!test13.orientableTest());
+    }
 
     //TEST 14
     //TESTING 2-MANIFOLD METHOD - ASSERT TRUE CASE
-    Mesh test14;
-    CPPUNIT_ASSERT(test14.readSTL(header+"basic_sphere.stl"));
-    CPPUNIT_ASSERT(test14.basicValidity());
-    CPPUNIT_ASSERT(test14.closedTest());
-    CPPUNIT_ASSERT(test14.orientableTest());
-    CPPUNIT_ASSERT(test14.manifoldTest());
+    if (true){
+        Mesh test14;
+        CPPUNIT_ASSERT(test14.readSTL(header+"basic_sphere.stl"));
+        CPPUNIT_ASSERT(test14.basicValidity());
+        CPPUNIT_ASSERT(test14.closedTest());
+        CPPUNIT_ASSERT(test14.orientableTest());
+        CPPUNIT_ASSERT(test14.manifoldTest());
+    }
 
     //TEST 15
     //TESTING 2-MANIFOLD METHOD - ASSERT FALSE CASE
-    /*Mesh cube;
-    CPPUNIT_ASSERT(test5.readSTL(header+"TestGenus1.stl"));
-    cube.prepareEdges();*/
+    if (true){
+        Mesh test15;
+        CPPUNIT_ASSERT(test15.readSTL(header+"TestGenus1.stl"));
+        CPPUNIT_ASSERT(test15.readSTL(header+"basic_sphere.stl"));
+        //CPPUNIT_ASSERT(test15.basicValidity());
+        //CPPUNIT_ASSERT(test15.closedTest());
+        //CPPUNIT_ASSERT(test15.orientableTest());
+        //CPPUNIT_ASSERT(test15.manifoldTest());
+        //TODO need to find model that passed closed and orientable?
+    }
 
 
 

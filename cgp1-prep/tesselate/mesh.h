@@ -89,6 +89,7 @@ private:
 
     std::unordered_map<int, vector<int>> edgelookup;
     std::unordered_map<int, vector<int>> companion;
+    std::vector<cgp::Point> dirtyVerts;
 
     //added in
 
