@@ -168,11 +168,12 @@ public:
 
     bool closedTest();
     bool manifoldTest();
-    bool checkEulerChar();
+    bool checkEulerCharBool();
+    int checkEulerCharInt();
     bool danglingVerticeCheck();
     bool vertexBoundsTest();
     bool orientableTest();
-
+    void prepareEdges();
 
 
     ShapeGeometry geom;         ///< renderable version of mesh

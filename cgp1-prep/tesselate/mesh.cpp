@@ -419,10 +419,10 @@ bool Mesh::readSTL(string filename)
         mergeVerts();
         // normal vectors at vertices are needed for rendering so derive from incident faces
         deriveVertNorms();
-        if(basicValidity())
+        /*if(basicValidity())
             cerr << "loaded file has basic validity" << endl;
         else
-            cerr << "loaded file does not pass basic validity" << endl;
+            cerr << "loaded file does not pass basic validity" << endl;*/
     }
     else
     {
@@ -478,32 +478,32 @@ bool Mesh::writeSTL(string filename)
 
 
 
-
-
-bool Mesh::basicValidity()
-{
-    //BUILDING THE UNIQUE EDGE LIST
-
+void Mesh::prepareEdges(){
     //build all the edges including duplicate ones
     buildDirtyEdges();
     //sort the edge list to only contain unique edges
     hashEdgeSort();
+}
 
+bool Mesh::basicValidity()
+{
+    //BUILDING THE UNIQUE EDGE LIST
+    prepareEdges();
     std::cout << std::endl;
 
     //check eulers characteristic
-    if (!checkEulerChar()){
-        //return false;
+    if (!checkEulerCharBool()){
+        return false;
     }
     std::cout << std::endl;
     //2. no dangling vertices
     if (!danglingVerticeCheck()){
-        //return false;
+        return false;
     }
     std::cout << std::endl;
     //3. edge indices within bounds of the vertex list
     if (!vertexBoundsTest()){
-        //return false;
+        return false;
     }
 
     //if we have basic validity we would have reached this point
@@ -511,12 +511,13 @@ bool Mesh::basicValidity()
     //if we pass maifold validity we have passed all tests
     //if not we return false
 
-    if (!manifoldValidity()){
+    /*if (!manifoldValidity()){
         return false;
     }
     else{
-        return true;
-    }
+
+    }*/
+    return true;
 }
 
 bool Mesh::manifoldValidity()
@@ -524,24 +525,24 @@ bool Mesh::manifoldValidity()
     std::cout << std::endl;
     //1. check the model to see if it is closed
     if (!closedTest()){
-        //return false;
+        return false;
     }
     std::cout << std::endl;
     //2. check to see if the model is orientable
     if (!orientableTest()){
-        //return false;
+        return false;
     }
     std::cout << std::endl;
     //3. check to see if the model is manifold
     if (!manifoldTest()){
-        //return false;
+        return false;
     }
 
     return true;
 }
 
 
-bool Mesh::checkEulerChar(){
+bool Mesh::checkEulerCharBool(){
     std::cout << "Checking Euler's characteristic..." << std::endl;
 
     //1. report euler's characteristic,
@@ -553,6 +554,21 @@ bool Mesh::checkEulerChar(){
     int result =  no_vert_clean - no_edges_clean + no_trinagles;
     std::cout << "Eulers characteristic Equation = " << result  << std::endl;
     return true;
+}
+
+int Mesh::checkEulerCharInt(){
+    std::cout << "Checking Euler's characteristic..." << std::endl;
+
+    //1. report euler's characteristic,
+    std::cout << "Eulers characteristic: V - E + T = 2 - 2G" << std::endl;
+    std::cout << "V = " << no_vert_clean << std::endl;
+    std::cout << "E = " << no_edges_clean << std::endl;
+    std::cout << "T = " << no_trinagles << std::endl;
+
+    int result =  no_vert_clean - no_edges_clean + no_trinagles;
+    std::cout << "Eulers characteristic Equation = " << result  << std::endl;
+
+    return result;
 }
 
 bool Mesh::danglingVerticeCheck(){
@@ -630,7 +646,6 @@ bool Mesh::manifoldTest(){
 
     for(int x = 0; x < verts.size(); x++){
         if (edgeCont[x].size() != triangleCont[x].size()){
-            std::cout << "fuck" << std::endl;
             result = false;
             break;
         }
@@ -653,7 +668,7 @@ bool Mesh::orientableTest(){
     //std::cout << "Orientable number: " << windingError << std::endl;
 
     if (windingError > 0){
-        std::cout << "Model is not orientable... ->" << windingError << std::endl;
+        std::cout << "Model is not orientable... ->" << windingError << " error found" << std::endl;
         return false;
     }
     std::cout << "Model is orientable..." << std::endl;
@@ -763,14 +778,6 @@ void Mesh::hashEdgeSort(){
                     //*start++; //WTF IS THIS HERE
 
                     //CHECKING FOR WINDING TO DETERMINE ORIENTABILITY
-
-                    //if hashmap[smallvert] == v[1]
-                    /*if (edges[i].v[1] == key && edges[i].v[0] == *start){
-                        //this is wound correctly
-                    }
-                    else{
-                        windingError++;
-                    }*/
 
                     if (edges[i].v[0] == companion[key][count1]){
                         //have different winding
