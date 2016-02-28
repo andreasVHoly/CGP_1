@@ -164,7 +164,7 @@ public:
 
     void buildAdjList();
     void naiveEdgeSort();
-    void hashEdgeSort();
+    int hashEdgeSort();
     void buildDirtyEdges();
 
     bool closedTest();
@@ -174,7 +174,7 @@ public:
     bool danglingVerticeCheck();
     bool vertexBoundsTest();
     bool orientableTest();
-    void prepareEdges();
+    int prepareEdges();
 
 
     ShapeGeometry geom;         ///< renderable version of mesh

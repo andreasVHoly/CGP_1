@@ -478,11 +478,11 @@ bool Mesh::writeSTL(string filename)
 
 
 
-void Mesh::prepareEdges(){
+int Mesh::prepareEdges(){
     //build all the edges including duplicate ones
     buildDirtyEdges();
     //sort the edge list to only contain unique edges
-    hashEdgeSort();
+    return hashEdgeSort();
 }
 
 bool Mesh::basicValidity()
@@ -619,39 +619,52 @@ bool Mesh::manifoldTest(){
     std::cout << "Checking manifold validity of model..." << std::endl;
     bool result = true;
 
+    //here we are using the property of:
+        //if a vertex is connected to at least 3 edges
+        //the number of triangles surrounding the vertex is equal to the number of edges connected to it
+        //thus we can check that if for each vertex the number of connected edges = the number of triangles that vertex belongs to
 
+    //for the 2 vectors below each unique vertex has a position in this vector based on its index into the verts vector
+    //this vector holds the triangles for each vertex,
     std::vector<std::vector<Triangle>> triangleCont(verts.size());
+    //this vector holds the edges for each vertex
     std::vector<std::vector<Edge>> edgeCont(verts.size());
 
+    //we loop through the triangle list to get the triangles connected to each unique vertex
     for (int i = 0; i < tris.size(); i++){
+        //get the 3 vertice indecies
+        //these serve as unique identifiers into the vector
         int v0 = tris[i].v[0];
         int v1 = tris[i].v[1];
         int v2 = tris[i].v[2];
 
-
+        //we assign the current triangle to these vertcies as they are part of it
         triangleCont[v0].push_back(tris[i]);
         triangleCont[v1].push_back(tris[i]);
         triangleCont[v2].push_back(tris[i]);
-
     }
 
-
+    //we loop through all the unique edges to get the vertcies and its connected edges
     for (int j = 0; j < edges.size(); j++){
+        //get the 2 vertice indecies
+        //these serve as unique identifiers into the vector
         int v0 = edges[j].v[0];
         int v1 = edges[j].v[1];
 
+        //we assign the current edge to these vertcies as they are part of it
         edgeCont[v0].push_back(edges[j]);
         edgeCont[v1].push_back(edges[j]);
     }
 
+    //now using the property explained earlier
+    //loop through both vectors and for each vertex compare the sizes
+    //if they are equal the vertex is surrounded by a closed fan
     for(int x = 0; x < verts.size(); x++){
         if (edgeCont[x].size() != triangleCont[x].size()){
             result = false;
             break;
         }
     }
-
-
 
     if(result){
         std::cout << "Model is 2-Manifold..." << std::endl;
@@ -665,8 +678,8 @@ bool Mesh::manifoldTest(){
 
 bool Mesh::orientableTest(){
     std::cout << "Checking if model is orientable..." << std::endl;
-    //std::cout << "Orientable number: " << windingError << std::endl;
 
+    //this number is calcauated in the hashEdgeSort method
     if (windingError > 0){
         std::cout << "Model is not orientable... ->" << windingError << " error found" << std::endl;
         return false;
@@ -678,18 +691,11 @@ bool Mesh::orientableTest(){
 void Mesh::buildDirtyEdges(){
 
     edges.clear();
+    //we loop through the triangles and create a vector with all the edges in it, including duplicates
     for (int i = 0; i < (int) tris.size(); i++){
         Edge e1 = Edge(tris[i].v[0],tris[i].v[1]);
         Edge e2 = Edge(tris[i].v[1],tris[i].v[2]);
         Edge e3 = Edge(tris[i].v[2],tris[i].v[0]);
-
-
-        //this is used for the adjacency list later
-        //when we encounter a duplicate edge, we need to merge these vectors to form the adjacency list
-        e1.trisCommon.push_back(i);
-        e2.trisCommon.push_back(i);
-        e3.trisCommon.push_back(i);
-
 
         edges.push_back(e1);
         edges.push_back(e2);
@@ -701,14 +707,14 @@ void Mesh::buildDirtyEdges(){
 bool Mesh::closedTest(){
     std::cout << "Checking if the model is closed..." << endl;
     int closeCounter = 0;
-    //std::cout << "Test1" << std::endl;
     for(auto i = edgelookup.begin(); i != edgelookup.end(); i++){
         //we need to go through all edges
-        //then we need to look for that edge in the triangle list
-        //if it shows up twice, it works
-
+        //then we need to check that each edge in the triangle list
+        //if it shows up twice, the model is closed
+        //we do this by checking that the counter we use is the same size as the size of destination vertices attached to each vertex
         if (i->second[0] != i->second.size()-1){
-            //we subtract the differnce
+            //we subtract the differnce,
+            //if this counter is bigger than 0, we have a non-closed model as we have edges that are only refereced once
             closeCounter += (i->second.size()-1 - i->second[0]);
         }
 
@@ -727,8 +733,9 @@ bool Mesh::closedTest(){
 
 
 
-void Mesh::hashEdgeSort(){
+int Mesh::hashEdgeSort(){
     windingError = 0;
+    //clean edges are stored in here
     vector<Edge> cleanEdges;
     int key;
     int i, hitcount = 0, counter = 0;
@@ -736,6 +743,7 @@ void Mesh::hashEdgeSort(){
     // remove duplicate edges
     for(i = 0; i < (int) edges.size(); i++){
 
+        //default
         key = 10000000;
         int opposite = 1000000;
 
@@ -756,11 +764,17 @@ void Mesh::hashEdgeSort(){
         if(edgelookup.find(key) == edgelookup.end()) {
             //if we did not find the key, we add a new index inot the hash map
             std::vector<int> temp;
+            //init the counter to 0
             temp.push_back(0);
+            //push on the bigger vertex
             temp.push_back(opposite);
+            //push on default value to ensure equal indexing in the arrays
             companion[key].push_back(0);
+            //push on the first vertex, this is used to see later on if the winding is opposite
             companion[key].push_back(edges[i].v[0]);
+            //assign data
             edgelookup[key] = temp;
+            //push edge
             cleanEdges.push_back(edges[i]);
         }
         else        {
@@ -775,10 +789,9 @@ void Mesh::hashEdgeSort(){
             while (start != end){
                 //if we do find it, we break as it is already added, thus a duplciate edge
                 if (*start == opposite){
-                    //*start++; //WTF IS THIS HERE
 
                     //CHECKING FOR WINDING TO DETERMINE ORIENTABILITY
-
+                    //we compare which vertex was the first one here, if they v[0]'s are equal that means the winding is equal
                     if (edges[i].v[0] == companion[key][count1]){
                         //have different winding
                         windingError++;
@@ -786,6 +799,8 @@ void Mesh::hashEdgeSort(){
 
 
                     //CHECKING IF THE MODEL IS CLOSED
+                    //we increment the counter by 1
+                    //see explenation behind method in the closedTest() method
                     edgelookup[key][0] += 1;
 
                     //CHECKING HOW MANY DUPLCIATE EDGES THERE ARE
@@ -797,9 +812,11 @@ void Mesh::hashEdgeSort(){
                 count1++;
             }
 
-            //if it is not found, we add a new entry
+            //if it is not found, we add a new entry, meaning we have a new destination for a source vertex that already exists
             if (!found){
+                //push new bigger key
                 edgelookup[key].push_back(opposite);
+                //push the edge's winding
                 companion[key].push_back(edges[i].v[0]);
                 cleanEdges.push_back(edges[i]);
             }
@@ -815,6 +832,7 @@ void Mesh::hashEdgeSort(){
 
     edges.clear();
     edges = cleanEdges;
+    return no_edges_clean;
 }
 
 

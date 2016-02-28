@@ -25,11 +25,27 @@ void TestMesh::testMeshing()
     //edit file path for correct access to stl files
     std::string header = "/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/";
 
-    //TEST 1
+
+    //TEST 1A
+    //TESTING TO SEE IF THE UNIQUE EDGE COUNT WORKS WITH THE BUNNY FILE
+    Mesh test1a;
+    CPPUNIT_ASSERT(test1a.readSTL(header+"bunny.stl"));
+    CPPUNIT_ASSERT(test1a.prepareEdges() == 104288);
+
+
+    //TEST 1B
+    //TESTING TO SEE IF THE UNIQUE EDGE COUNT WORKS WITH THE DRAGON FILE
+    Mesh test1b;
+    CPPUNIT_ASSERT(test1b.readSTL(header+"dragon.stl"));
+    CPPUNIT_ASSERT(test1b.prepareEdges() == 896925);
+
+
+    //TEST 1C
     //BASIC PRE-EXISTING TEST FOR BUNNY
     CPPUNIT_ASSERT(mesh->readSTL(header+"bunny.stl"));
     CPPUNIT_ASSERT(mesh->basicValidity());
     CPPUNIT_ASSERT(!mesh->manifoldValidity()); // bunny has known holes in the bottom
+
 
     //TEST 2
     //TESTING IF EACH METHOD IN THE BASIC VALIDITY & 2-MANIFOLD VALIDITY WORKS USING A TRIANGULAR PYRAMID
@@ -45,7 +61,7 @@ void TestMesh::testMeshing()
         CPPUNIT_ASSERT(pyramid.manifoldTest());
     }
 
-    //TEST 3
+    //TEST 3A
     //TESTING IF EACH METHOD IN THE BASIC VALIDITY & 2-MANIFOLD VALIDITY WORKS USING A CUBE
     if (true){
         Mesh cube;
@@ -95,7 +111,7 @@ void TestMesh::testMeshing()
         CPPUNIT_ASSERT(test7.readSTL(header+"TestDanglingVertices.stl"));
         test7.prepareEdges();
         //CPPUNIT_ASSERT(!test7.danglingVerticeCheck());
-        //TODO test fails
+        //TODO test fails, as a I can't get a model with dangling vertices, blender seems to cull them on export or stl read in culls thems
     }
 
     //TEST 8
@@ -114,7 +130,7 @@ void TestMesh::testMeshing()
         Mesh test9;
         CPPUNIT_ASSERT(test9.readSTL(header+"TestGenus1.stl"));
         test9.prepareEdges();
-        //TODO how to tets negative case?
+        //TODO how to test negative case?
     }
 
     //TEST 10
@@ -172,7 +188,6 @@ void TestMesh::testMeshing()
     if (true){
         Mesh test15;
         CPPUNIT_ASSERT(test15.readSTL(header+"TestGenus1.stl"));
-        CPPUNIT_ASSERT(test15.readSTL(header+"basic_sphere.stl"));
         //CPPUNIT_ASSERT(test15.basicValidity());
         //CPPUNIT_ASSERT(test15.closedTest());
         //CPPUNIT_ASSERT(test15.orientableTest());
