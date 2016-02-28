@@ -103,8 +103,8 @@ void GLWidget::initializeGL()
     glEnable(GL_DEPTH_CLAMP);
     glEnable(GL_TEXTURE_2D);
 
-
-    autoLoadModels();
+    //added in to ensure that we dont need to open a model each time
+    //autoLoadModels();
 }
 
 
