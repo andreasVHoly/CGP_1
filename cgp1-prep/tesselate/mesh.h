@@ -232,6 +232,7 @@ public:
      * @retval false otherwise.
      */
     bool readSTL(string filename);
+    bool readSTLTEST(string filename);
 
     /**
      * Write triangle mesh to STL format binary file

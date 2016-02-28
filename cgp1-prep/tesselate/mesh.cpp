@@ -331,7 +331,7 @@ void Mesh::boxFit(float sidelen){
     }
 }
 
-bool Mesh::readSTL(string filename)
+bool Mesh::readSTLTEST(string filename)
 {
 
 
@@ -423,6 +423,113 @@ bool Mesh::readSTL(string filename)
             cerr << "loaded file has basic validity" << endl;
         else
             cerr << "loaded file does not pass basic validity" << endl;*/
+    }
+    else
+    {
+        cerr << "Error Mesh::readSTL: unable to open " << filename << endl;
+        return false;
+    }
+    return true;
+}
+
+
+
+bool Mesh::readSTL(string filename)
+{
+
+
+    cout << "************************************" << filename << "************************************" << std::endl;
+    ifstream infile;
+    char * inbuffer;
+    struct stat results;
+    int insize, inpos, numt, t, i;
+    cgp::Point vpos;
+    Triangle tri;
+
+    // assumes binary format STL file
+    infile.open((char *) filename.c_str(), ios_base::in | ios_base::binary);
+    if(infile.is_open())
+    {
+        clear();
+
+        // get the size of the file
+        stat((char *) filename.c_str(), &results);
+        insize = results.st_size;
+
+        // put file contents in buffer
+        inbuffer = new char[insize];
+        infile.read(inbuffer, insize);
+        if(!infile) // failed to read from the file for some reason
+        {
+            cerr << "Error Mesh::readSTL: unable to populate read buffer" << endl;
+            return false;
+        }
+
+        // interpret buffer as STL file
+        if(insize <= 84)
+        {
+            cerr << "Error Mesh::readSTL: invalid STL binary file, too small" << endl;
+            return false;
+        }
+
+        inpos = 80; // skip 80 character header
+        if(inpos+4 >= insize){ cerr << "Error Mesh::readSTL: malformed header on stl file" << endl; return false; }
+        numt = (int) (* ((long *) &inbuffer[inpos]));
+        inpos += 4;
+
+        t = 0;
+
+        // triangle vertices have consistent outward facing clockwise winding (right hand rule)
+        while(t < numt) // read in triangle data
+        {
+            // normal
+            if(inpos+12 >= insize){ cerr << "Error Mesh::readSTL: malformed stl file" << endl; return false; }
+            // IEEE floating point 4-byte binary numerical representation, IEEE754, little endian
+            tri.n = cgp::Vector((* ((float *) &inbuffer[inpos])), (* ((float *) &inbuffer[inpos+4])), (* ((float *) &inbuffer[inpos+8])));
+            inpos += 12;
+
+            // vertices
+            for(i = 0; i < 3; i++)
+            {
+                if(inpos+12 >= insize){ cerr << "Error Mesh::readSTL: malformed stl file" << endl; return false; }
+                vpos = cgp::Point((* ((float *) &inbuffer[inpos])), (* ((float *) &inbuffer[inpos+4])), (* ((float *) &inbuffer[inpos+8])));
+                tri.v[i] = (int) verts.size();
+                verts.push_back(vpos);
+                inpos += 12;
+            }
+
+
+
+
+            tris.push_back(tri);
+            t++;
+            inpos += 2; // handle attribute byte count - which can simply be discarded
+        }
+
+        // tidy up
+        delete inbuffer;
+        infile.close();
+
+        cerr << "num vertices = " << (int) verts.size() << endl;
+        cerr << "num triangles = " << (int) tris.size() << endl;
+
+        no_trinagles = tris.size();
+        no_vert_dirty = verts.size();
+        no_edges_dirty = edges.size();
+
+
+        // STL provides a triangle soup so merge vertices that are coincident
+        mergeVerts();
+        // normal vectors at vertices are needed for rendering so derive from incident faces
+        deriveVertNorms();
+        if(basicValidity()){
+            cerr << "loaded file has basic validity" << endl;
+            manifoldValidity();
+        }
+
+        else{
+            cerr << "loaded file does not pass basic validity" << endl;
+        }
     }
     else
     {
