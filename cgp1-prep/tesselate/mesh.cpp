@@ -673,7 +673,7 @@ bool Mesh::manifoldTest(){
     }
 
 
-    return true;
+    return result;
 }
 
 bool Mesh::orientableTest(){

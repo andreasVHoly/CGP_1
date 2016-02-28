@@ -47,6 +47,7 @@ void TestMesh::testMeshing()
     CPPUNIT_ASSERT(!mesh->manifoldValidity()); // bunny has known holes in the bottom
 
 
+
     //TEST 2
     //TESTING IF EACH METHOD IN THE BASIC VALIDITY & 2-MANIFOLD VALIDITY WORKS USING A TRIANGULAR PYRAMID
     if (true){
@@ -118,10 +119,10 @@ void TestMesh::testMeshing()
     //TESTING VERTEX OUT OF BOUNDS METHOD - ASSERT TRUE CASE
     if (true){
         Mesh test8;
-        CPPUNIT_ASSERT(test8.readSTL(header+"TestGenus1.stl"));
+        CPPUNIT_ASSERT(test8.readSTL(header+"basic_sphere.stl"));//known to have vertices in bounds
         test8.prepareEdges();
         CPPUNIT_ASSERT(test8.vertexBoundsTest());
-        //TODO how to prove positive case
+
     }
 
     //TEST 9
@@ -130,7 +131,8 @@ void TestMesh::testMeshing()
         Mesh test9;
         CPPUNIT_ASSERT(test9.readSTL(header+"TestGenus1.stl"));
         test9.prepareEdges();
-        //TODO how to test negative case?
+        //CPPUNIT_ASSERT(!test8.vertexBoundsTest());
+        //TODO could not produce model with vertices out of bounds
     }
 
     //TEST 10
