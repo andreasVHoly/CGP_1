@@ -22,7 +22,7 @@ void TestMesh::tearDown()
 
 void TestMesh::testMeshing()
 {
-    //edit file path for correct access to stl files
+    //edit file path for correct access to stl files -> should be fine
     std::string header = "./meshes/";
 
 
@@ -187,12 +187,12 @@ void TestMesh::testMeshing()
     //TESTING 2-MANIFOLD METHOD - ASSERT FALSE CASE
     if (true){
         Mesh test15;
-        CPPUNIT_ASSERT(test15.readSTL(header+"TestGenus1.stl"));
-        //CPPUNIT_ASSERT(test15.basicValidity());
-        //CPPUNIT_ASSERT(test15.closedTest());
+        CPPUNIT_ASSERT(test15.readSTL(header+"TwoManifoldTestFail.stl"));
+        CPPUNIT_ASSERT(test15.basicValidity());
+        CPPUNIT_ASSERT(test15.closedTest());
         //CPPUNIT_ASSERT(test15.orientableTest());
-        //CPPUNIT_ASSERT(test15.manifoldTest());
-        //TODO need to find model that passed closed and orientable?
+        CPPUNIT_ASSERT(!test15.manifoldTest());
+        //TODO need to find model that passed closed and orientable? --> method fails orientable thus uncommented
     }
 
 

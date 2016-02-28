@@ -1,0 +1,20 @@
+README for CGP Assignment 1
+VHLAND002
+Andreas von Holy
+
+
+To run the assignment:
+
+1. Navigate inside the cgp1-prep directory.
+2. Type 'make'.
+3. Hopefully all test pass and you will see a 100% appear eventually. Ignore all the warnings that will show up on screen.
+4. Type './tesselate/tessviewer' to run the program.
+5. Then navigate to the File option in the actions tab and open a .stl file.
+
+To Test the assignment:
+
+1. Navigate inside the cgp1-prep directory.
+2. Type 'make'.
+3. Hopefully all test pass and you will see a 100% appear eventually. Ignore all the warnings that will show up on screen.
+4. Type './test/tilertest --test "All tests"' to run the tests.
+5. Then navigate to the File option in the actions tab and open a .stl file.
