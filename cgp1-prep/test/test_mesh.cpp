@@ -23,7 +23,7 @@ void TestMesh::tearDown()
 void TestMesh::testMeshing()
 {
     //edit file path for correct access to stl files
-    std::string header = "/home/user/Honours/CGP/cgpass1/cgp1-prep/meshes/";
+    std::string header = "./meshes/";
 
 
     //TEST 1A
